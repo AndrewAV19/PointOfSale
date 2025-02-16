@@ -28,7 +28,6 @@ import {
 import {
   AddShoppingCart as AddShoppingCartIcon,
   Clear as ClearIcon,
-  QrCodeScanner as QrCodeScannerIcon,
   LocalAtm as LocalAtmIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
@@ -137,6 +136,8 @@ const CreateSalePage: React.FC = () => {
   ) => {
     setPage(newPage);
   };
+
+  
 
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -362,19 +363,23 @@ const CreateSalePage: React.FC = () => {
             alignItems: "flex-end",
           }}
         >
-          <Grid item xs={12} sx={{ display: "flex", justifyContent: "flex-start" }}>
-  <TextField
-    label="Total"
-    value={calculateTotal()}
-    fullWidth
-    disabled
-    InputProps={{
-      startAdornment: (
-        <InputAdornment position="start">$</InputAdornment>
-      ),
-    }}
-  />
-</Grid>
+          <Grid
+            item
+            xs={12}
+            sx={{ display: "flex", justifyContent: "flex-start" }}
+          >
+            <TextField
+              label="Total"
+              value={calculateTotal()}
+              fullWidth
+              disabled
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">$</InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
 
           <Box
             display="flex"
