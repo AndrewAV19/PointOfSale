@@ -45,6 +45,8 @@ const CreateSalePage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  console.log(setProduct)
+
   const clients = ["Cliente 1", "Cliente 2", "Cliente 3"];
   const availableProducts = [
     { id: "1", name: "Sabritas", price: 100, image: "/path/to/sabritas.jpg" },
@@ -131,13 +133,12 @@ const CreateSalePage: React.FC = () => {
   };
 
   const handleChangePage = (
-    event: React.MouseEvent<HTMLButtonElement> | null,
+    _: React.MouseEvent<HTMLButtonElement> | null,
     newPage: number
   ) => {
     setPage(newPage);
   };
-
-  
+    
 
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
