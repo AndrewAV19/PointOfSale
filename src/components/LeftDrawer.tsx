@@ -21,7 +21,9 @@ import {
   ShoppingCart as ShoppingCartIcon, 
   CreditCard as CreditCardIcon, 
   LocalShipping as LocalShippingIcon, 
+  ExitToApp as ExitToAppIcon, 
 } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom"; 
 
 const StyledDrawer = styled(Drawer)({
   width: 240,
@@ -74,9 +76,16 @@ const menuItems = [
   { id: "expenses", text: "Egresos", icon: <CreditCardIcon /> }, 
   { id: "reports", text: "Informes", icon: <BarChartIcon /> },
   { id: "settings", text: "Configuraciones", icon: <SettingsIcon /> },
+  { id: "logout", text: "Cerrar sesión", icon: <ExitToAppIcon /> }, 
 ];
 
 const LeftSidebar: React.FC = () => {
+  const navigate = useNavigate(); 
+
+  const handleLogout = () => {
+    navigate("/auth/login"); 
+  };
+
   return (
     <StyledDrawer variant="permanent" anchor="left">
       {/* Logo y título */}
@@ -92,7 +101,10 @@ const LeftSidebar: React.FC = () => {
       {/* Menú de navegación */}
       <List>
         {menuItems.map((item) => (
-          <StyledListItemButton key={item.id}>
+          <StyledListItemButton 
+            key={item.id} 
+            onClick={item.id === "logout" ? handleLogout : undefined} 
+          >
             <StyledListItemIcon>{item.icon}</StyledListItemIcon>
             <StyledListItemText primary={item.text} />
           </StyledListItemButton>

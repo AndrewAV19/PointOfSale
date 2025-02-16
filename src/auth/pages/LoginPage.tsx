@@ -13,7 +13,8 @@ interface Credentials {
 const LoginPage: React.FC = () => {
   const [credentials, setCredentials] = useState<Credentials>({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
@@ -35,14 +36,21 @@ const LoginPage: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#f4f6f8",
+        background: "linear-gradient(135deg,rgb(255, 255, 255) 0%,rgb(28, 64, 105) 100%)",
+        padding: 2,
       }}
     >
       <Paper 
         elevation={3} 
-        sx={{ padding: 4, maxWidth: 500, width: "100%", borderRadius: 3 }}
+        sx={{ 
+          padding: 4, 
+          maxWidth: 500, 
+          width: "100%", 
+          borderRadius: 3,
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
+        }}
       >
-        <Typography variant="h5" align="center" gutterBottom>
+        <Typography variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold" }}>
           Iniciar Sesión
         </Typography>
         <form onSubmit={handleSubmit}>
@@ -61,6 +69,7 @@ const LoginPage: React.FC = () => {
                 </InputAdornment>
               ),
             }}
+            sx={{ mb: 2 }}
           />
           <TextField
             fullWidth
@@ -85,19 +94,20 @@ const LoginPage: React.FC = () => {
                 </InputAdornment>
               ),
             }}
+            sx={{ mb: 2 }}
           />
           <Button 
             type="submit" 
             fullWidth 
             variant="contained" 
             color="primary" 
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, py: 1.5, fontWeight: "bold" }}
           >
             Iniciar Sesión
           </Button>
         </form>
         <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-          ¿No tienes una cuenta? <a href="#" style={{ color: "#1976d2", textDecoration: "none" }}>Regístrate</a>
+          ¿No tienes una cuenta? <a href="#" style={{ color: "#1976d2", textDecoration: "none", fontWeight: "bold" }}>Regístrate</a>
         </Typography>
       </Paper>
     </Box>
