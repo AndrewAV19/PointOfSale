@@ -5,7 +5,7 @@ export const PointOfSale = () => {
   return (
     <AppTheme>
       <AppRouter />
-     </AppTheme>
+    </AppTheme>
   );
 };
 
