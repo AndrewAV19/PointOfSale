@@ -1,5 +1,5 @@
 import React from "react";
-import { Container, Typography, Grid, Box, IconButton, Button } from "@mui/material";
+import { Container, Typography, Grid, Box, IconButton } from "@mui/material";
 import { Store as StoreIcon, People as PeopleIcon, Business as BusinessIcon, Info as InfoIcon } from "@mui/icons-material";
 
 const AboutPage: React.FC = () => {
