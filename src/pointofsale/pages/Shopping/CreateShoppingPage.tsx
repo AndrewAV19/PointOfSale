@@ -41,6 +41,9 @@ const CreateShoppingPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [amountGiven, setAmountGiven] = useState(0);
   const [change, setChange] = useState(0);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "warning"
+  >("success");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [messageSnackbar, setMessageSnackbar] = useState("");
   const [productsList, setProductsList] = useState<any[]>([]);
@@ -168,6 +171,23 @@ const CreateShoppingPage: React.FC = () => {
           : product
       )
     );
+  };
+
+  const handleConfirmPurchase = () => {
+    if (amountGiven < calculateTotal()) {
+      setSnackbarSeverity("error");
+      handleOpenSnackbar("Dinero insuficiente.");
+      return;
+    }
+
+    if (productsList.length === 0) {
+      setSnackbarSeverity("warning");
+      handleOpenSnackbar("No hay productos agregados.");
+      return;
+    }
+
+    setSnackbarSeverity("success");
+    handleOpenSnackbar("Compra Confirmada");
   };
 
   useEffect(() => {
@@ -415,7 +435,7 @@ const CreateShoppingPage: React.FC = () => {
               color="primary"
               startIcon={<LocalAtmIcon />}
               fullWidth
-              onClick={() => handleOpenSnackbar("Venta Confirmada")}
+              onClick={handleConfirmPurchase}
             >
               Confirmar Compra
             </Button>
@@ -432,13 +452,27 @@ const CreateShoppingPage: React.FC = () => {
         </Box>
       </Paper>
 
-      {/* Snackbar de confirmación */}
+      {/* Snackbar de confirmación y errores */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
         onClose={handleCloseSnackbar}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success">
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbarSeverity}
+          sx={{
+            width: "100%",
+            fontSize: "1.0rem",
+            padding: "16px",
+            borderRadius: "8px",
+            textAlign: "center",
+          }}
+        >
           {messageSnackbar}
         </Alert>
       </Snackbar>
