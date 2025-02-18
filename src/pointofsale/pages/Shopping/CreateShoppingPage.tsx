@@ -3,14 +3,10 @@ import {
   Container,
   Grid,
   TextField,
-  MenuItem,
   Button,
   Typography,
   Paper,
   Box,
-  Select,
-  InputLabel,
-  FormControl,
   InputAdornment,
   Divider,
   IconButton,
@@ -30,12 +26,18 @@ import {
   Clear as ClearIcon,
   LocalAtm as LocalAtmIcon,
   Delete as DeleteIcon,
+  Search as SearchIcon,
 } from "@mui/icons-material";
+import { ModalSearchSuppliers } from "../../modales/ModalSearchSuppliers";
+import { Product } from "../../interfaces/product.interface";
+import { products } from "../../mocks/productData";
+import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 
 const CreateShoppingPage: React.FC = () => {
-  const [client, setClient] = useState("");
-  const [product, setProduct] = useState("");
-  const [productId, setProductId] = useState("");
+  const [supplier, setSupplier] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [openModalProducts, setOpenModalProducts] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [amountGiven, setAmountGiven] = useState(0);
   const [change, setChange] = useState(0);
@@ -45,16 +47,7 @@ const CreateShoppingPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  console.log(setProduct)
-
-  const clients = ["Cliente 1", "Cliente 2", "Cliente 3"];
-  const availableProducts = [
-    { id: "1", name: "Sabritas", price: 100, image: "/path/to/sabritas.jpg" },
-    { id: "2", name: "Coca Cola", price: 50, image: "/path/to/coca_cola.jpg" },
-    { id: "3", name: "Doritos", price: 120, image: "/path/to/doritos.jpg" },
-    { id: "4", name: "Galletas Oreo", price: 80, image: "/path/to/oreo.jpg" },
-    // Puedes agregar más productos aquí
-  ];
+  console.log(setProduct);
 
   // Función para calcular el total de la venta
   const calculateTotal = () => {
@@ -66,7 +59,7 @@ const CreateShoppingPage: React.FC = () => {
     setQuantity(newQuantity);
 
     // Recalcular el cambio cuando cambie la cantidad
-    const selectedProduct = availableProducts.find((p) => p.name === product);
+    const selectedProduct = products.find((p) => p.name === product?.name);
     if (selectedProduct) {
       setChange(amountGiven - newQuantity * selectedProduct.price);
     }
@@ -77,36 +70,38 @@ const CreateShoppingPage: React.FC = () => {
     setAmountGiven(amount);
     setChange(amount - calculateTotal());
   };
-  // Asegúrate de que handleProductIdChange también actualice el cambio
+
   const handleProductIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const enteredProductId = e.target.value;
-    setProductId(enteredProductId);
-
-    // Buscar el producto seleccionado por ID
-    const selectedProduct = availableProducts.find(
-      (p) => p.id === enteredProductId
+    const selectedProduct = products.find(
+      (p) => p.id.toString() === enteredProductId
     );
+
     if (selectedProduct) {
-      // Recalcular el cambio con el nuevo producto
-      setChange(amountGiven - quantity * selectedProduct.price);
+      setProduct(selectedProduct);
+    } else {
+      setProduct(null);
     }
   };
 
   const handleAddProduct = () => {
-    const selectedProduct = availableProducts.find((p) => p.id === productId);
-    if (selectedProduct) {
+    if (product) {
       const newProduct = {
-        id: selectedProduct.id,
-        name: selectedProduct.name,
+        id: product.id,
+        name: product.name,
         quantity,
-        price: selectedProduct.price,
-        total: selectedProduct.price * quantity,
-        image: selectedProduct.image,
+        price: product.price,
+        total: product.price * quantity,
       };
+
+      // Agrega el nuevo producto a la lista
       setProductsList((prevList) => [...prevList, newProduct]);
-      setProductId("");
+
+      setProduct(null);
       setQuantity(1);
       setChange(amountGiven - (calculateTotal() + newProduct.total));
+    } else {
+      console.error("No se ha seleccionado ningún producto.");
     }
   };
 
@@ -115,8 +110,8 @@ const CreateShoppingPage: React.FC = () => {
   };
 
   const handleReset = () => {
-    setClient("");
-    setProductId("");
+    setSupplier("");
+    setProduct(null);
     setQuantity(1);
     setAmountGiven(0);
     setChange(0);
@@ -138,7 +133,6 @@ const CreateShoppingPage: React.FC = () => {
   ) => {
     setPage(newPage);
   };
-    
 
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -187,37 +181,56 @@ const CreateShoppingPage: React.FC = () => {
       </Typography>
       <Paper sx={{ padding: 3, borderRadius: 2 }}>
         <Grid container spacing={3}>
-          {/* Selección de Cliente */}
+          {/* Selección de Proveedor */}
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Cliente</InputLabel>
-              <Select
-                value={client}
-                onChange={(e) => setClient(e.target.value)}
-                label="Cliente"
-              >
-                {clients.map((clientName) => (
-                  <MenuItem key={clientName} value={clientName}>
-                    {clientName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <TextField
+              label="Proveedor"
+              fullWidth
+              value={supplier}
+              onChange={(e) => setSupplier(e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setOpenModal(true)}>
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            {/* Modal para seleccionar proveedor */}
+            <ModalSearchSuppliers
+              open={openModal}
+              handleClose={() => setOpenModal(false)}
+              handleSelect={(selectedSupplier) =>
+                setSupplier(selectedSupplier.id)
+              }
+            />
           </Grid>
 
           {/* Producto */}
           <Grid item xs={12} sm={6}>
             <TextField
-              label="ID del Producto"
+              label="Producto"
               fullWidth
-              value={productId}
+              value={product ? product.id : ""}
               onChange={handleProductIdChange}
-              error={!!availableProducts.find((p) => p.id === productId)}
-              helperText={
-                availableProducts.find((p) => p.id === productId)
-                  ? ""
-                  : "ID inválido"
-              }
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setOpenModalProducts(true)}>
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {/* Modal para seleccionar producto */}
+            <ModalSearchProducts
+              open={openModalProducts}
+              handleClose={() => setOpenModalProducts(false)}
+              handleSelect={(selectedProduct) => setProduct(selectedProduct)}
             />
           </Grid>
 
@@ -260,6 +273,15 @@ const CreateShoppingPage: React.FC = () => {
               value={change}
               fullWidth
               disabled
+              sx={{
+                "& .MuiInputBase-root": {
+                  backgroundColor:
+                    change < 0 ? "rgba(255, 0, 0, 0.1)" : "inherit",
+                },
+                "& .MuiInputBase-input": {
+                  color: change < 0 ? "red" : "inherit",
+                },
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">$</InputAdornment>
@@ -395,7 +417,7 @@ const CreateShoppingPage: React.FC = () => {
               fullWidth
               onClick={() => handleOpenSnackbar("Venta Confirmada")}
             >
-              Confirmar Venta
+              Confirmar Compra
             </Button>
             <Button
               variant="outlined"
