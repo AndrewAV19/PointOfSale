@@ -1,5 +1,4 @@
 import {
-  Home as HomeIcon,
   Store as StoreIcon,
   ShoppingCart as ShoppingCartIcon,
   Inventory as InventoryIcon,
@@ -15,7 +14,6 @@ import {
 } from "@mui/icons-material";
 
 export const menuItems = [
-  { id: "home", text: "Inicio", icon: <HomeIcon />, path: "/home" },
   {
     id: "sales",
     text: "Ventas",
@@ -40,6 +38,7 @@ export const menuItems = [
   { id: "income", text: "Ingresos", icon: <AttachMoneyIcon />, path: "/ingresos" },
   { id: "expenses", text: "Egresos", icon: <CreditCardIcon />, path: "/egresos" },
   { id: "reports", text: "Informes", icon: <BarChartIcon />, path: "/informes" },
+  { id: "about",text: "Acerca de", icon: <PeopleIcon />, path: "/acerca-de", },
   { id: "settings", text: "Configuraciones", icon: <SettingsIcon />, path: "/configuraciones" },
   { id: "logout", text: "Cerrar sesión", icon: <ExitToAppIcon />, path: "/auth/login" },
 ];

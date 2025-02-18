@@ -12,7 +12,7 @@ import {
   styled,
   Typography,
 } from "@mui/material";
-import { ExpandLess, ExpandMore, } from "@mui/icons-material";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { menuItems } from "./MenuConfig";
 
 const StyledDrawer = styled(Drawer)({
@@ -55,14 +55,14 @@ const LogoContainer = styled("div")({
   gap: "10px",
 });
 
-
-
 const LeftSidebar: React.FC = () => {
   const navigate = useNavigate();
-  const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({});
+  // Guardamos solo el ID del submenú abierto, o null si ninguno está abierto
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   const handleToggleSubmenu = (id: string) => {
-    setOpenSubmenus((prev) => ({ ...prev, [id]: !prev[id] }));
+    // Si el submenú actual está abierto, lo cerramos, si no, lo abrimos y cerramos otros
+    setOpenSubmenu(prev => (prev === id ? null : id));
   };
 
   return (
@@ -71,7 +71,7 @@ const LeftSidebar: React.FC = () => {
       <LogoContainer>
         <Avatar alt="Logo" sx={{ width: 60, height: 60 }} />
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          Punto de Venta
+          Mi Tiendita
         </Typography>
       </LogoContainer>
 
@@ -86,9 +86,9 @@ const LeftSidebar: React.FC = () => {
                 <StyledListItemButton onClick={() => handleToggleSubmenu(item.id)}>
                   <StyledListItemIcon>{item.icon}</StyledListItemIcon>
                   <StyledListItemText primary={item.text} />
-                  {openSubmenus[item.id] ? <ExpandLess /> : <ExpandMore />}
+                  {openSubmenu === item.id ? <ExpandLess /> : <ExpandMore />}
                 </StyledListItemButton>
-                <Collapse in={openSubmenus[item.id]} timeout="auto" unmountOnExit>
+                <Collapse in={openSubmenu === item.id} timeout="auto" unmountOnExit>
                   <List component="div" disablePadding>
                     {item.subItems.map((subItem) => (
                       <StyledListItemButton key={subItem.text} sx={{ pl: 4 }} onClick={() => navigate(subItem.path)}>
