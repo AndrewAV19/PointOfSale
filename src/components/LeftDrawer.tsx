@@ -1,29 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Drawer,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Collapse,
   Divider,
   Avatar,
   styled,
   Typography,
 } from "@mui/material";
-import {
-  Home as HomeIcon,
-  Store as StoreIcon,
-  Inventory as InventoryIcon,
-  People as PeopleIcon,
-  BarChart as BarChartIcon,
-  Settings as SettingsIcon,
-  AttachMoney as AttachMoneyIcon, 
-  ShoppingCart as ShoppingCartIcon, 
-  CreditCard as CreditCardIcon, 
-  LocalShipping as LocalShippingIcon, 
-  ExitToApp as ExitToAppIcon, 
-} from "@mui/icons-material";
-import { useNavigate } from "react-router-dom"; 
+import { ExpandLess, ExpandMore, } from "@mui/icons-material";
+import { menuItems } from "./MenuConfig";
 
 const StyledDrawer = styled(Drawer)({
   width: 240,
@@ -32,28 +22,28 @@ const StyledDrawer = styled(Drawer)({
     width: 240,
     boxSizing: "border-box",
     position: "relative",
-    backgroundColor: "#2C3E50", 
-    color: "#ECF0F1", 
+    backgroundColor: "#2C3E50",
+    color: "#ECF0F1",
     paddingTop: 24,
-    borderRight: "2px solid #34495E", 
+    borderRight: "2px solid #34495E",
   },
 });
 
 const StyledListItemButton = styled(ListItemButton)({
   padding: "8px 16px",
   "&:hover": {
-    backgroundColor: "#34495E", 
-    transition: "background-color 0.3s", 
+    backgroundColor: "#34495E",
+    transition: "background-color 0.3s",
   },
 });
 
 const StyledListItemText = styled(ListItemText)({
   color: "#ECF0F1",
-  fontWeight: "500", 
+  fontWeight: "500",
 });
 
 const StyledListItemIcon = styled(ListItemIcon)({
-  color: "#ECF0F1", 
+  color: "#ECF0F1",
 });
 
 const LogoContainer = styled("div")({
@@ -61,29 +51,18 @@ const LogoContainer = styled("div")({
   padding: "0 16px",
   display: "flex",
   alignItems: "center",
-  justifyContent: "center", 
-  gap: "10px", 
+  justifyContent: "center",
+  gap: "10px",
 });
 
-const menuItems = [
-  { id: "home", text: "Inicio", icon: <HomeIcon /> },
-  { id: "sales", text: "Ventas", icon: <StoreIcon /> },
-  { id: "purchases", text: "Compras", icon: <ShoppingCartIcon /> }, 
-  { id: "inventory", text: "Inventario", icon: <InventoryIcon /> },
-  { id: "customers", text: "Clientes", icon: <PeopleIcon /> },
-  { id: "suppliers", text: "Proveedores", icon: <LocalShippingIcon /> }, 
-  { id: "income", text: "Ingresos", icon: <AttachMoneyIcon /> }, 
-  { id: "expenses", text: "Egresos", icon: <CreditCardIcon /> }, 
-  { id: "reports", text: "Informes", icon: <BarChartIcon /> },
-  { id: "settings", text: "Configuraciones", icon: <SettingsIcon /> },
-  { id: "logout", text: "Cerrar sesión", icon: <ExitToAppIcon /> }, 
-];
+
 
 const LeftSidebar: React.FC = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const [openSubmenus, setOpenSubmenus] = useState<{ [key: string]: boolean }>({});
 
-  const handleLogout = () => {
-    navigate("/auth/login"); 
+  const handleToggleSubmenu = (id: string) => {
+    setOpenSubmenus((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
@@ -101,13 +80,32 @@ const LeftSidebar: React.FC = () => {
       {/* Menú de navegación */}
       <List>
         {menuItems.map((item) => (
-          <StyledListItemButton 
-            key={item.id} 
-            onClick={item.id === "logout" ? handleLogout : undefined} 
-          >
-            <StyledListItemIcon>{item.icon}</StyledListItemIcon>
-            <StyledListItemText primary={item.text} />
-          </StyledListItemButton>
+          <React.Fragment key={item.id}>
+            {item.subItems ? (
+              <>
+                <StyledListItemButton onClick={() => handleToggleSubmenu(item.id)}>
+                  <StyledListItemIcon>{item.icon}</StyledListItemIcon>
+                  <StyledListItemText primary={item.text} />
+                  {openSubmenus[item.id] ? <ExpandLess /> : <ExpandMore />}
+                </StyledListItemButton>
+                <Collapse in={openSubmenus[item.id]} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {item.subItems.map((subItem) => (
+                      <StyledListItemButton key={subItem.text} sx={{ pl: 4 }} onClick={() => navigate(subItem.path)}>
+                        <StyledListItemIcon>{subItem.icon}</StyledListItemIcon>
+                        <StyledListItemText primary={subItem.text} />
+                      </StyledListItemButton>
+                    ))}
+                  </List>
+                </Collapse>
+              </>
+            ) : (
+              <StyledListItemButton onClick={() => navigate(item.path || "/")}>
+                <StyledListItemIcon>{item.icon}</StyledListItemIcon>
+                <StyledListItemText primary={item.text} />
+              </StyledListItemButton>
+            )}
+          </React.Fragment>
         ))}
       </List>
     </StyledDrawer>
