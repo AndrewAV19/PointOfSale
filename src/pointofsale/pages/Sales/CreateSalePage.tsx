@@ -30,7 +30,7 @@ import {
 } from "@mui/icons-material";
 import { ModalSearchClients } from "../../modales/ModalSearchClients";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
-import { products } from "../../mocks/productData";
+import { products } from "../../mocks/productMock";
 import { Product } from "../../interfaces/product.interface";
 
 const CreateSalePage: React.FC = () => {
@@ -206,7 +206,7 @@ const CreateSalePage: React.FC = () => {
           {/* Selección de Cliente */}
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Cliente"
+              label="Código cliente"
               fullWidth
               value={client}
               onChange={(e) => setClient(e.target.value)}
@@ -232,7 +232,7 @@ const CreateSalePage: React.FC = () => {
           {/* Producto */}
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Producto"
+              label="Código producto"
               fullWidth
               value={product ? product.id : ""}
               onChange={handleProductIdChange}

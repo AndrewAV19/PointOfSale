@@ -30,7 +30,7 @@ import {
 } from "@mui/icons-material";
 import { ModalSearchSuppliers } from "../../modales/ModalSearchSuppliers";
 import { Product } from "../../interfaces/product.interface";
-import { products } from "../../mocks/productData";
+import { products } from "../../mocks/productMock";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 
 const CreateShoppingPage: React.FC = () => {
@@ -204,7 +204,7 @@ const CreateShoppingPage: React.FC = () => {
           {/* Selección de Proveedor */}
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Proveedor"
+              label="Código proveedor"
               fullWidth
               value={supplier}
               onChange={(e) => setSupplier(e.target.value)}
@@ -232,7 +232,7 @@ const CreateShoppingPage: React.FC = () => {
           {/* Producto */}
           <Grid item xs={12} sm={6}>
             <TextField
-              label="Producto"
+              label="Código producto"
               fullWidth
               value={product ? product.id : ""}
               onChange={handleProductIdChange}

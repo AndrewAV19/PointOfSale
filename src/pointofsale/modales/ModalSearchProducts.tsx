@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { ProductTable } from "../tables/ProductTable";
-import { products } from "../mocks/productData";
+import { products } from "../mocks/productMock";
 
 interface ModalSearchToClientProps {
   open: boolean;

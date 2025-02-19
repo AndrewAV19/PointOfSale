@@ -18,6 +18,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { useState } from "react";
+import { clients } from "../mocks/customerMock";
 
 interface ModalSearchToClientProps {
   open: boolean;
@@ -30,13 +31,6 @@ export const ModalSearchClients: React.FC<ModalSearchToClientProps> = ({
   handleClose,
   handleSelect,
 }) => {
-  const clients = [
-    { id: 1, name: "Luis", email: "luis@example.com" },
-    { id: 2, name: "Jose", email: "jose@example.com" },
-    { id: 3, name: "Axel", email: "axel@example.com" },
-    { id: 4, name: "Carlos", email: "carlos@example.com" },
-    { id: 5, name: "Ana", email: "ana@example.com" },
-  ];
 
   const [search, setSearch] = useState("");
 

@@ -1,12 +1,6 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper, Typography } from "@mui/material";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-}
+import { Product } from '../interfaces/product.interface';
 
 interface ProductListProps {
   products: Product[];
