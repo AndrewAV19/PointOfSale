@@ -303,7 +303,6 @@ const CreateShoppingPage: React.FC = () => {
             <TextField
               label="Cambio"
               value={change}
-              fullWidth
               disabled
               sx={{
                 "& .MuiInputBase-root": {
@@ -444,10 +443,16 @@ const CreateShoppingPage: React.FC = () => {
           >
             <Button
               variant="contained"
-              color="primary"
+              sx={{
+                backgroundColor: "green",
+                "&:hover": { backgroundColor: "darkgreen" },
+              }}
               startIcon={<LocalAtmIcon />}
               fullWidth
               onClick={handleConfirmPurchase}
+              disabled={
+                productsList.length === 0 || amountGiven < calculateTotal()
+              }
             >
               Confirmar Compra
             </Button>
@@ -457,6 +462,17 @@ const CreateShoppingPage: React.FC = () => {
               startIcon={<ClearIcon />}
               fullWidth
               onClick={handleReset}
+              sx={{
+                borderRadius: 2,
+                padding: "10px 20px",
+                fontWeight: "bold",
+                borderColor: "#d32f2f",
+                "&:hover": {
+                  borderColor: "#b71c1c",
+                  backgroundColor: "#ffebee",
+                },
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+              }}
             >
               Limpiar Campos
             </Button>

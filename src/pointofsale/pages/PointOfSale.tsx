@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, useMediaQuery, useTheme, Button, Drawer } from "@mui/material";
 import LeftSidebar from "../../components/LeftDrawer";
 import { Outlet } from "react-router-dom";
-import MenuIcon from "@mui/icons-material/Menu"; // Importa el ícono de menú
+import MenuIcon from "@mui/icons-material/Menu"; 
 
 const PointOfSale: React.FC = () => {
   const theme = useTheme();
