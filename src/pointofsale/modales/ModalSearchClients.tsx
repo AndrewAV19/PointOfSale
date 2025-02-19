@@ -1,4 +1,8 @@
-import { Close as CloseIcon, Person as PersonIcon, Search as SearchIcon } from "@mui/icons-material";
+import {
+  Close as CloseIcon,
+  Person as PersonIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
 import {
   IconButton,
   Dialog,
@@ -31,7 +35,6 @@ export const ModalSearchClients: React.FC<ModalSearchToClientProps> = ({
   handleClose,
   handleSelect,
 }) => {
-
   const [search, setSearch] = useState("");
 
   // Filtrar clientes según el texto de búsqueda
@@ -62,15 +65,17 @@ export const ModalSearchClients: React.FC<ModalSearchToClientProps> = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{ marginBottom: 2 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
           }}
         />
-        
+
         {/* Tabla de clientes */}
         <TableContainer component={Paper} elevation={3}>
           <Table>
@@ -111,7 +116,9 @@ export const ModalSearchClients: React.FC<ModalSearchToClientProps> = ({
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} align="center">
-                    <Typography color="textSecondary">No se encontraron resultados</Typography>
+                    <Typography color="textSecondary">
+                      No se encontraron resultados
+                    </Typography>
                   </TableCell>
                 </TableRow>
               )}

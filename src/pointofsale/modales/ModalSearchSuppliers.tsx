@@ -62,12 +62,14 @@ export const ModalSearchSuppliers: React.FC<ModalSearchToClientProps> = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{ marginBottom: 2 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
           }}
         />
         

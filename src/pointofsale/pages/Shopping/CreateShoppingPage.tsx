@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Container,
-  Grid,
   TextField,
   Button,
   Typography,
@@ -200,95 +199,107 @@ const CreateShoppingPage: React.FC = () => {
         Crear Compra
       </Typography>
       <Paper sx={{ padding: 3, borderRadius: 2 }}>
-        <Grid container spacing={3}>
-          {/* Selección de Proveedor */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Código proveedor"
-              fullWidth
-              value={supplier}
-              onChange={(e) => setSupplier(e.target.value)}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setOpenModal(true)}>
-                      <SearchIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
+        <Box display="flex" flexDirection="column" gap={3}>
+          {/* Selección de Proveedor y Producto */}
+          <Box display="flex" gap={3}>
+            {/* Selección de Proveedor */}
+            <Box flex={1}>
+              <TextField
+                label="Código proveedor"
+                fullWidth
+                value={supplier}
+                onChange={(e) => setSupplier(e.target.value)}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setOpenModal(true)}>
+                          <SearchIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
 
-            {/* Modal para seleccionar proveedor */}
-            <ModalSearchSuppliers
-              open={openModal}
-              handleClose={() => setOpenModal(false)}
-              handleSelect={(selectedSupplier) =>
-                setSupplier(selectedSupplier.id)
-              }
-            />
-          </Grid>
+              {/* Modal para seleccionar proveedor */}
+              <ModalSearchSuppliers
+                open={openModal}
+                handleClose={() => setOpenModal(false)}
+                handleSelect={(selectedSupplier) =>
+                  setSupplier(selectedSupplier.id)
+                }
+              />
+            </Box>
 
-          {/* Producto */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Código producto"
-              fullWidth
-              value={product ? product.id : ""}
-              onChange={handleProductIdChange}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setOpenModalProducts(true)}>
-                      <SearchIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            {/* Modal para seleccionar producto */}
-            <ModalSearchProducts
-              open={openModalProducts}
-              handleClose={() => setOpenModalProducts(false)}
-              handleSelect={(selectedProduct) => setProduct(selectedProduct)}
-              showPrice={false}
-            />
-          </Grid>
+            {/* Producto */}
+            <Box flex={1}>
+              <TextField
+                label="Código producto"
+                fullWidth
+                value={product ? product.id : ""}
+                onChange={handleProductIdChange}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setOpenModalProducts(true)}>
+                          <SearchIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              {/* Modal para seleccionar producto */}
+              <ModalSearchProducts
+                open={openModalProducts}
+                handleClose={() => setOpenModalProducts(false)}
+                handleSelect={(selectedProduct) => setProduct(selectedProduct)}
+                showPrice={false}
+              />
+            </Box>
+          </Box>
 
-          {/* Cantidad */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Cantidad"
-              type="number"
-              fullWidth
-              value={quantity}
-              onChange={handleQuantityChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">#</InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
+          {/* Cantidad y Monto dado */}
+          <Box display="flex" gap={3}>
+            <Box flex={1}>
+              <TextField
+                label="Cantidad"
+                type="number"
+                fullWidth
+                value={quantity}
+                onChange={handleQuantityChange}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">#</InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Box>
 
-          {/* Monto dado */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Monto Dado"
-              type="number"
-              fullWidth
-              value={amountGiven}
-              onChange={handleAmountGivenChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">$</InputAdornment>
-                ),
-              }}
-            />
-          </Grid>
+            <Box flex={1}>
+              <TextField
+                label="Monto Dado"
+                type="number"
+                fullWidth
+                value={amountGiven}
+                onChange={handleAmountGivenChange}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">$</InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Box>
+          </Box>
 
           {/* Cambio */}
-          <Grid item xs={12} sm={6}>
+          <Box>
             <TextField
               label="Cambio"
               value={change}
@@ -303,16 +314,18 @@ const CreateShoppingPage: React.FC = () => {
                   color: change < 0 ? "red" : "inherit",
                 },
               }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">$</InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                },
               }}
             />
-          </Grid>
+          </Box>
 
           {/* Botón para agregar el producto */}
-          <Grid item xs={12} sx={{ display: "flex", justifyContent: "center" }}>
+          <Box display="flex" justifyContent="center">
             <Button
               variant="contained"
               color="primary"
@@ -324,8 +337,8 @@ const CreateShoppingPage: React.FC = () => {
             >
               Agregar Producto
             </Button>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         <Divider sx={{ marginY: 3 }} />
 
@@ -340,7 +353,7 @@ const CreateShoppingPage: React.FC = () => {
                 <TableCell></TableCell>
                 <TableCell>Producto</TableCell>
                 <TableCell>Cantidad</TableCell>
-                <TableCell>Precio Unitario</TableCell> {/* Nueva columna */}
+                <TableCell>Precio Unitario</TableCell>
                 <TableCell>Total</TableCell>
                 <TableCell></TableCell>
               </TableRow>
@@ -407,23 +420,21 @@ const CreateShoppingPage: React.FC = () => {
             alignItems: "flex-end",
           }}
         >
-          <Grid
-            item
-            xs={12}
-            sx={{ display: "flex", justifyContent: "flex-start" }}
-          >
+          <Box>
             <TextField
               label="Total"
               value={calculateTotal()}
               fullWidth
               disabled
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">$</InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                },
               }}
             />
-          </Grid>
+          </Box>
 
           <Box
             display="flex"
