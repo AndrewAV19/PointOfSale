@@ -5,9 +5,10 @@ import { Product } from '../interfaces/product.interface';
 interface ProductListProps {
   products: Product[];
   onSelect: (product: Product) => void;
+  showPrice: boolean; // Prop para decidir qué valor mostrar
 }
 
-export const ProductTable: React.FC<ProductListProps> = ({ products, onSelect }) => {
+export const ProductTable: React.FC<ProductListProps> = ({ products, onSelect, showPrice }) => {
   return (
     <TableContainer component={Paper} elevation={3}>
       <Table>
@@ -15,7 +16,7 @@ export const ProductTable: React.FC<ProductListProps> = ({ products, onSelect })
           <TableRow>
             <TableCell>Nombre</TableCell>
             <TableCell>Descripción</TableCell>
-            <TableCell>Precio</TableCell>
+            <TableCell>{showPrice ? 'Precio' : 'Costo'}</TableCell> 
             <TableCell align="center">Acción</TableCell>
           </TableRow>
         </TableHead>
@@ -25,7 +26,7 @@ export const ProductTable: React.FC<ProductListProps> = ({ products, onSelect })
               <TableRow key={product.id} hover>
                 <TableCell>{product.name}</TableCell>
                 <TableCell>{product.description}</TableCell>
-                <TableCell>{product.price}</TableCell>
+                <TableCell>{showPrice ? product.price : product.costPrice}</TableCell> {/* Mostrar precio o costo */}
                 <TableCell align="center">
                   <Button
                     variant="contained"

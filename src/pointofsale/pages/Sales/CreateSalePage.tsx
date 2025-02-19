@@ -251,6 +251,7 @@ const CreateSalePage: React.FC = () => {
               open={openModalProducts}
               handleClose={() => setOpenModalProducts(false)}
               handleSelect={(selectedProduct) => setProduct(selectedProduct)}
+              showPrice={true}
             />
           </Grid>
 

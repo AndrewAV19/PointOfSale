@@ -64,7 +64,7 @@ const CreateShoppingPage: React.FC = () => {
     // Recalcular el cambio cuando cambie la cantidad
     const selectedProduct = products.find((p) => p.name === product?.name);
     if (selectedProduct) {
-      setChange(amountGiven - newQuantity * selectedProduct.price);
+      setChange(amountGiven - newQuantity * selectedProduct.costPrice);
     }
   };
 
@@ -93,8 +93,8 @@ const CreateShoppingPage: React.FC = () => {
         id: product.id,
         name: product.name,
         quantity,
-        price: product.price,
-        total: product.price * quantity,
+        costPrice: product.costPrice,
+        total: product.costPrice * quantity,
       };
 
       // Agrega el nuevo producto a la lista
@@ -152,7 +152,7 @@ const CreateShoppingPage: React.FC = () => {
           ? {
               ...product,
               quantity: product.quantity + 1,
-              total: (product.quantity + 1) * product.price,
+              total: (product.quantity + 1) * product.costPrice,
             }
           : product
       )
@@ -166,7 +166,7 @@ const CreateShoppingPage: React.FC = () => {
           ? {
               ...product,
               quantity: product.quantity - 1,
-              total: (product.quantity - 1) * product.price,
+              total: (product.quantity - 1) * product.costPrice,
             }
           : product
       )
@@ -251,6 +251,7 @@ const CreateShoppingPage: React.FC = () => {
               open={openModalProducts}
               handleClose={() => setOpenModalProducts(false)}
               handleSelect={(selectedProduct) => setProduct(selectedProduct)}
+              showPrice={false}
             />
           </Grid>
 
@@ -370,7 +371,7 @@ const CreateShoppingPage: React.FC = () => {
                         </IconButton>
                       </Box>
                     </TableCell>
-                    <TableCell>${product.price}</TableCell>{" "}
+                    <TableCell>${product.costPrice}</TableCell>{" "}
                     <TableCell>${product.total}</TableCell>
                     <TableCell>
                       <IconButton

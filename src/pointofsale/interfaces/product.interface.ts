@@ -6,7 +6,7 @@ export interface Product {
     stock?: number; 
     category?: string; 
     supplier?: string; // Proveedor
-    costPrice?: number; // Precio de costo
+    costPrice: number; // Precio de costo
     discount?: number; // Descuento aplicable
     taxRate?: number; // Impuesto aplicable
     images?: string[]; // URLs de imágenes del producto

@@ -14,16 +14,18 @@ import { useState } from "react";
 import { ProductTable } from "../tables/ProductTable";
 import { products } from "../mocks/productMock";
 
-interface ModalSearchToClientProps {
+interface ModalSearchToProductsProps {
   open: boolean;
   handleClose: () => void;
   handleSelect: (item: any) => void;
+  showPrice: boolean;
 }
 
-export const ModalSearchProducts: React.FC<ModalSearchToClientProps> = ({
+export const ModalSearchProducts: React.FC<ModalSearchToProductsProps> = ({
   open,
   handleClose,
   handleSelect,
+  showPrice,
 }) => {
 
   const [search, setSearch] = useState("");
@@ -68,7 +70,9 @@ export const ModalSearchProducts: React.FC<ModalSearchToClientProps> = ({
         <ProductTable products={filteredProducts} onSelect={(product) => {
           handleSelect(product);
           handleClose();
-        }} />
+        }} 
+        showPrice={showPrice}
+        />
 
       </DialogContent>
       <DialogActions>
