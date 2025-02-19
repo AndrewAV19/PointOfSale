@@ -88,20 +88,36 @@ const CreateSalePage: React.FC = () => {
 
   const handleAddProduct = () => {
     if (product) {
-      const newProduct = {
-        id: product.id,
-        name: product.name,
-        quantity,
-        price: product.price,
-        total: product.price * quantity,
-      };
+      // Verifica si el producto ya existe en la lista
+      const existingProduct = productsList.find((p) => p.id === product.id);
 
-      // Agrega el nuevo producto a la lista
-      setProductsList((prevList) => [...prevList, newProduct]);
+      if (existingProduct) {
+        // Si el producto ya existe, actualiza su cantidad y total
+        setProductsList((prevList) =>
+          prevList.map((p) =>
+            p.id === product.id
+              ? {
+                  ...p,
+                  quantity: p.quantity + quantity,
+                  total: (p.quantity + quantity) * p.price,
+                }
+              : p
+          )
+        );
+      } else {
+        const newProduct = {
+          id: product.id,
+          name: product.name,
+          quantity,
+          price: product.price,
+          total: product.price * quantity,
+        };
+        setProductsList((prevList) => [...prevList, newProduct]);
+      }
 
       setProduct(null);
       setQuantity(1);
-      setChange(amountGiven - (calculateTotal() + newProduct.total));
+      setChange(amountGiven - calculateTotal());
     } else {
       console.error("No se ha seleccionado ningún producto.");
     }
@@ -448,8 +464,13 @@ const CreateSalePage: React.FC = () => {
               }}
               startIcon={<LocalAtmIcon />}
               fullWidth
-              onClick={handleConfirmSale}
-              disabled={productsList.length === 0 || amountGiven < calculateTotal()}
+              onClick={() => {
+                handleConfirmSale();
+                handleReset();
+              }}
+              disabled={
+                productsList.length === 0 || amountGiven < calculateTotal()
+              }
             >
               Confirmar Venta
             </Button>
