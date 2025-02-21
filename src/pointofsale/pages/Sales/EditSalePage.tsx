@@ -25,14 +25,16 @@ import {
   Delete as DeleteIcon,
   Search as SearchIcon,
   Save as SaveIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 import { products } from "../../mocks/productMock";
 import { Product } from "../../interfaces/product.interface";
 import { mockSale } from "../../mocks/saleMock";
+import { useNavigate } from "react-router-dom";
 
 const EditSalePage: React.FC = () => {
-  
+  const navigate = useNavigate();
   const [client, setClient] = useState(mockSale.client.id);
   const [openModalProducts, setOpenModalProducts] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
@@ -47,6 +49,7 @@ const EditSalePage: React.FC = () => {
   const [productsList, setProductsList] = useState<any[]>(mockSale.products);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Función para calcular el total de la venta
   const calculateTotal = () => {
@@ -115,6 +118,7 @@ const EditSalePage: React.FC = () => {
       setProduct(null);
       setQuantity(1);
       setChange(amountGiven - calculateTotal());
+      setHasChanges(true);
     } else {
       console.error("No se ha seleccionado ningún producto.");
     }
@@ -122,6 +126,7 @@ const EditSalePage: React.FC = () => {
 
   const handleDeleteProduct = (productId: string) => {
     setProductsList((prevList) => prevList.filter((p) => p.id !== productId));
+    setHasChanges(true);
   };
 
   const handleReset = () => {
@@ -169,6 +174,7 @@ const EditSalePage: React.FC = () => {
           : product
       )
     );
+    setHasChanges(true);
   };
 
   const handleDecreaseQuantity = (productId: string) => {
@@ -183,6 +189,7 @@ const EditSalePage: React.FC = () => {
           : product
       )
     );
+    setHasChanges(true);
   };
 
   // Confirmar edición de la venta
@@ -210,12 +217,26 @@ const EditSalePage: React.FC = () => {
     handleReset();
   };
 
+  const handleGoBack = () => {
+    navigate(-1); 
+  };
+
   useEffect(() => {
     setChange(amountGiven - calculateTotal());
   }, [productsList, amountGiven]);
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
+       {/* Botón para regresar */}
+       <Box sx={{ marginBottom: 0}}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={handleGoBack}
+        >
+          Regresar
+        </Button>
+      </Box>
       <Typography variant="h4" align="center" gutterBottom>
         Editar Venta
       </Typography>
@@ -457,19 +478,38 @@ const EditSalePage: React.FC = () => {
               sx={{
                 backgroundColor: "green",
                 "&:hover": { backgroundColor: "darkgreen" },
+                color: "white",
+                fontWeight: "bold",
+                textTransform: "none",
+                boxShadow: 2,
+                padding: "10px 20px",
+                borderRadius: "8px",
+                transition: "background-color 0.3s ease",
               }}
               startIcon={<SaveIcon />}
               fullWidth
               onClick={handleConfirmEdit}
               disabled={
-                productsList.length === 0 || amountGiven < calculateTotal()
+                !hasChanges || 
+                productsList.length === 0 || 
+                amountGiven < calculateTotal() 
               }
             >
               Confirmar Edición
             </Button>
             <Button
               variant="contained"
-              color="error"
+              sx={{
+                backgroundColor: "error.main",
+                "&:hover": { backgroundColor: "darkred" },
+                color: "white",
+                fontWeight: "bold",
+                textTransform: "none",
+                boxShadow: 2,
+                padding: "10px 20px",
+                borderRadius: "8px",
+                transition: "background-color 0.3s ease",
+              }}
               startIcon={<DeleteIcon />}
               fullWidth
               onClick={handleDeleteSale}
