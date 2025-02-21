@@ -22,34 +22,31 @@ import {
 } from "@mui/material";
 import {
   AddShoppingCart as AddShoppingCartIcon,
-  Clear as ClearIcon,
-  LocalAtm as LocalAtmIcon,
   Delete as DeleteIcon,
   Search as SearchIcon,
+  Save as SaveIcon,
 } from "@mui/icons-material";
-import { ModalSearchClients } from "../../modales/ModalSearchClients";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 import { products } from "../../mocks/productMock";
 import { Product } from "../../interfaces/product.interface";
+import { mockSale } from "../../mocks/saleMock";
 
-const CreateSalePage: React.FC = () => {
-  const [client, setClient] = useState("");
-  const [openModal, setOpenModal] = useState(false);
+const EditSalePage: React.FC = () => {
+  
+  const [client, setClient] = useState(mockSale.client.id);
   const [openModalProducts, setOpenModalProducts] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [amountGiven, setAmountGiven] = useState(0);
+  const [amountGiven, setAmountGiven] = useState(mockSale.amountGiven);
   const [change, setChange] = useState(0);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning"
   >("success");
   const [messageSnackbar, setMessageSnackbar] = useState("");
-  const [productsList, setProductsList] = useState<any[]>([]);
+  const [productsList, setProductsList] = useState<any[]>(mockSale.products);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  console.log(setProduct);
 
   // Función para calcular el total de la venta
   const calculateTotal = () => {
@@ -128,12 +125,12 @@ const CreateSalePage: React.FC = () => {
   };
 
   const handleReset = () => {
-    setClient("");
+    setClient(mockSale.client.id);
     setProduct(null);
     setQuantity(1);
-    setAmountGiven(0);
+    setAmountGiven(mockSale.amountGiven);
     setChange(0);
-    setProductsList([]);
+    setProductsList(mockSale.products);
   };
 
   const handleOpenSnackbar = (message: string) => {
@@ -188,8 +185,8 @@ const CreateSalePage: React.FC = () => {
     );
   };
 
-  // Confirmar venta
-  const handleConfirmSale = () => {
+  // Confirmar edición de la venta
+  const handleConfirmEdit = () => {
     if (amountGiven < calculateTotal()) {
       setSnackbarSeverity("error");
       handleOpenSnackbar("Dinero insuficiente.");
@@ -203,7 +200,14 @@ const CreateSalePage: React.FC = () => {
     }
 
     setSnackbarSeverity("success");
-    handleOpenSnackbar("Venta Confirmada");
+    handleOpenSnackbar("Venta Editada Correctamente");
+  };
+
+  // Eliminar la venta
+  const handleDeleteSale = () => {
+    setSnackbarSeverity("success");
+    handleOpenSnackbar("Venta Eliminada Correctamente");
+    handleReset();
   };
 
   useEffect(() => {
@@ -213,7 +217,7 @@ const CreateSalePage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
       <Typography variant="h4" align="center" gutterBottom>
-        Crear Venta
+        Editar Venta
       </Typography>
       <Paper sx={{ padding: 3, borderRadius: 2 }}>
         <Box display="flex" flexDirection="column" gap={3}>
@@ -224,25 +228,18 @@ const CreateSalePage: React.FC = () => {
                 label="Código cliente"
                 fullWidth
                 value={client}
-                onChange={(e) => setClient(e.target.value)}
+                disabled
                 slotProps={{
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setOpenModal(true)}>
+                        <IconButton>
                           <SearchIcon />
                         </IconButton>
                       </InputAdornment>
                     ),
                   },
                 }}
-              />
-
-              {/* Modal para seleccionar cliente */}
-              <ModalSearchClients
-                open={openModal}
-                handleClose={() => setOpenModal(false)}
-                handleSelect={(selectedClient) => setClient(selectedClient.id)}
               />
             </Box>
 
@@ -461,37 +458,23 @@ const CreateSalePage: React.FC = () => {
                 backgroundColor: "green",
                 "&:hover": { backgroundColor: "darkgreen" },
               }}
-              startIcon={<LocalAtmIcon />}
+              startIcon={<SaveIcon />}
               fullWidth
-              onClick={() => {
-                handleConfirmSale();
-                handleReset();
-              }}
+              onClick={handleConfirmEdit}
               disabled={
                 productsList.length === 0 || amountGiven < calculateTotal()
               }
             >
-              Confirmar Venta
+              Confirmar Edición
             </Button>
             <Button
-              variant="outlined"
+              variant="contained"
               color="error"
-              startIcon={<ClearIcon />}
+              startIcon={<DeleteIcon />}
               fullWidth
-              onClick={handleReset}
-              sx={{
-                borderRadius: 2,
-                padding: "10px 20px",
-                fontWeight: "bold",
-                borderColor: "#d32f2f",
-                "&:hover": {
-                  borderColor: "#b71c1c",
-                  backgroundColor: "#ffebee",
-                },
-                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              }}
+              onClick={handleDeleteSale}
             >
-              Limpiar Campos
+              Eliminar Venta
             </Button>
           </Box>
         </Box>
@@ -525,4 +508,4 @@ const CreateSalePage: React.FC = () => {
   );
 };
 
-export default CreateSalePage;
+export default EditSalePage;

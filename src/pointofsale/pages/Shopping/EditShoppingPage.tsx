@@ -22,55 +22,51 @@ import {
 } from "@mui/material";
 import {
   AddShoppingCart as AddShoppingCartIcon,
-  Clear as ClearIcon,
-  LocalAtm as LocalAtmIcon,
   Delete as DeleteIcon,
   Search as SearchIcon,
+  Save as SaveIcon,
 } from "@mui/icons-material";
-import { ModalSearchClients } from "../../modales/ModalSearchClients";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 import { products } from "../../mocks/productMock";
 import { Product } from "../../interfaces/product.interface";
+import { mockPurchase } from "../../mocks/shoppingMock";
 
-const CreateSalePage: React.FC = () => {
-  const [client, setClient] = useState("");
-  const [openModal, setOpenModal] = useState(false);
+const EditShoppingPage: React.FC = () => {
+
+  const [supplier, setSupplier] = useState(mockPurchase.supplier.id);
   const [openModalProducts, setOpenModalProducts] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [amountGiven, setAmountGiven] = useState(0);
+  const [amountGiven, setAmountGiven] = useState(mockPurchase.amountGiven);
   const [change, setChange] = useState(0);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning"
   >("success");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [messageSnackbar, setMessageSnackbar] = useState("");
-  const [productsList, setProductsList] = useState<any[]>([]);
+  const [productsList, setProductsList] = useState<any[]>(mockPurchase.products);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  console.log(setProduct);
-
-  // Función para calcular el total de la venta
+  // Función para calcular el total de la compra
   const calculateTotal = () => {
     return productsList.reduce((acc, product) => acc + product.total, 0);
   };
 
+  // Calcular el cambio automáticamente
+  useEffect(() => {
+    const total = calculateTotal();
+    setChange(amountGiven - total);
+  }, [amountGiven, productsList]);
+
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuantity = parseInt(e.target.value, 10);
     setQuantity(newQuantity);
-
-    // Recalcular el cambio cuando cambie la cantidad
-    const selectedProduct = products.find((p) => p.name === product?.name);
-    if (selectedProduct) {
-      setChange(amountGiven - newQuantity * selectedProduct.price);
-    }
   };
 
   const handleAmountGivenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const amount = parseFloat(e.target.value);
     setAmountGiven(amount);
-    setChange(amount - calculateTotal());
   };
 
   const handleProductIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,7 +95,7 @@ const CreateSalePage: React.FC = () => {
               ? {
                   ...p,
                   quantity: p.quantity + quantity,
-                  total: (p.quantity + quantity) * p.price,
+                  total: (p.quantity + quantity) * p.costPrice,
                 }
               : p
           )
@@ -109,15 +105,14 @@ const CreateSalePage: React.FC = () => {
           id: product.id,
           name: product.name,
           quantity,
-          price: product.price,
-          total: product.price * quantity,
+          costPrice: product.costPrice,
+          total: product.costPrice * quantity,
         };
         setProductsList((prevList) => [...prevList, newProduct]);
       }
 
       setProduct(null);
       setQuantity(1);
-      setChange(amountGiven - calculateTotal());
     } else {
       console.error("No se ha seleccionado ningún producto.");
     }
@@ -128,12 +123,11 @@ const CreateSalePage: React.FC = () => {
   };
 
   const handleReset = () => {
-    setClient("");
+    setSupplier(mockPurchase.supplier.id);
     setProduct(null);
     setQuantity(1);
-    setAmountGiven(0);
-    setChange(0);
-    setProductsList([]);
+    setAmountGiven(mockPurchase.amountGiven);
+    setProductsList(mockPurchase.products);
   };
 
   const handleOpenSnackbar = (message: string) => {
@@ -167,7 +161,7 @@ const CreateSalePage: React.FC = () => {
           ? {
               ...product,
               quantity: product.quantity + 1,
-              total: (product.quantity + 1) * product.price,
+              total: (product.quantity + 1) * product.costPrice,
             }
           : product
       )
@@ -181,15 +175,15 @@ const CreateSalePage: React.FC = () => {
           ? {
               ...product,
               quantity: product.quantity - 1,
-              total: (product.quantity - 1) * product.price,
+              total: (product.quantity - 1) * product.costPrice,
             }
           : product
       )
     );
   };
 
-  // Confirmar venta
-  const handleConfirmSale = () => {
+  // Confirmar edición de la compra
+  const handleConfirmEdit = () => {
     if (amountGiven < calculateTotal()) {
       setSnackbarSeverity("error");
       handleOpenSnackbar("Dinero insuficiente.");
@@ -203,46 +197,43 @@ const CreateSalePage: React.FC = () => {
     }
 
     setSnackbarSeverity("success");
-    handleOpenSnackbar("Venta Confirmada");
+    handleOpenSnackbar("Compra Editada Correctamente");
   };
 
-  useEffect(() => {
-    setChange(amountGiven - calculateTotal());
-  }, [productsList, amountGiven]);
+  // Eliminar la compra
+  const handleDeletePurchase = () => {
+    setSnackbarSeverity("success");
+    handleOpenSnackbar("Compra Eliminada Correctamente");
+    handleReset();
+  };
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
       <Typography variant="h4" align="center" gutterBottom>
-        Crear Venta
+        Editar Compra
       </Typography>
       <Paper sx={{ padding: 3, borderRadius: 2 }}>
         <Box display="flex" flexDirection="column" gap={3}>
-          {/* Selección de Cliente */}
+          {/* Selección de Proveedor y Producto */}
           <Box display="flex" gap={3}>
+            {/* Selección de Proveedor */}
             <Box flex={1}>
               <TextField
-                label="Código cliente"
+                label="Código proveedor"
                 fullWidth
-                value={client}
-                onChange={(e) => setClient(e.target.value)}
+                value={supplier}
+                disabled
                 slotProps={{
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setOpenModal(true)}>
+                        <IconButton>
                           <SearchIcon />
                         </IconButton>
                       </InputAdornment>
                     ),
                   },
                 }}
-              />
-
-              {/* Modal para seleccionar cliente */}
-              <ModalSearchClients
-                open={openModal}
-                handleClose={() => setOpenModal(false)}
-                handleSelect={(selectedClient) => setClient(selectedClient.id)}
               />
             </Box>
 
@@ -270,7 +261,7 @@ const CreateSalePage: React.FC = () => {
                 open={openModalProducts}
                 handleClose={() => setOpenModalProducts(false)}
                 handleSelect={(selectedProduct) => setProduct(selectedProduct)}
-                showPrice={true}
+                showPrice={false}
               />
             </Box>
           </Box>
@@ -316,7 +307,7 @@ const CreateSalePage: React.FC = () => {
           <Box>
             <TextField
               label="Cambio"
-              value={change}
+              value={change.toFixed(2)} // Mostrar el cambio con 2 decimales
               disabled
               sx={{
                 "& .MuiInputBase-root": {
@@ -397,7 +388,7 @@ const CreateSalePage: React.FC = () => {
                         </IconButton>
                       </Box>
                     </TableCell>
-                    <TableCell>${product.price}</TableCell>{" "}
+                    <TableCell>${product.costPrice}</TableCell>{" "}
                     <TableCell>${product.total}</TableCell>
                     <TableCell>
                       <IconButton
@@ -436,7 +427,7 @@ const CreateSalePage: React.FC = () => {
           <Box>
             <TextField
               label="Total"
-              value={calculateTotal()}
+              value={calculateTotal().toFixed(2)} // Mostrar el total con 2 decimales
               fullWidth
               disabled
               slotProps={{
@@ -461,37 +452,23 @@ const CreateSalePage: React.FC = () => {
                 backgroundColor: "green",
                 "&:hover": { backgroundColor: "darkgreen" },
               }}
-              startIcon={<LocalAtmIcon />}
+              startIcon={<SaveIcon />}
               fullWidth
-              onClick={() => {
-                handleConfirmSale();
-                handleReset();
-              }}
+              onClick={handleConfirmEdit}
               disabled={
                 productsList.length === 0 || amountGiven < calculateTotal()
               }
             >
-              Confirmar Venta
+              Confirmar Edición
             </Button>
             <Button
-              variant="outlined"
+              variant="contained"
               color="error"
-              startIcon={<ClearIcon />}
+              startIcon={<DeleteIcon />}
               fullWidth
-              onClick={handleReset}
-              sx={{
-                borderRadius: 2,
-                padding: "10px 20px",
-                fontWeight: "bold",
-                borderColor: "#d32f2f",
-                "&:hover": {
-                  borderColor: "#b71c1c",
-                  backgroundColor: "#ffebee",
-                },
-                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              }}
+              onClick={handleDeletePurchase}
             >
-              Limpiar Campos
+              Eliminar Compra
             </Button>
           </Box>
         </Box>
@@ -525,4 +502,4 @@ const CreateSalePage: React.FC = () => {
   );
 };
 
-export default CreateSalePage;
+export default EditShoppingPage;

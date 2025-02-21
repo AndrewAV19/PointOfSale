@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Table, TableHead, TableRow, TableCell, TableBody, Input, Button } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
 import { ventas } from "../../mocks/historySalesMock";
 
 export default function HistorySales() {
   const [search, setSearch] = useState("");
+  const navigate = useNavigate(); 
 
   const filteredVentas = ventas.filter((venta) =>
     venta.cliente.toLowerCase().includes(search.toLowerCase())
@@ -71,6 +73,7 @@ export default function HistorySales() {
                     variant="outlined"
                     startIcon={<Visibility />}
                     size="small"
+                    onClick={() => navigate(`/ventas/editar`)} 
                   >
                     Ver
                   </Button>

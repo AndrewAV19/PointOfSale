@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Table, TableHead, TableRow, TableCell, TableBody, Input, Button } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
 import { compras } from "../../mocks/historyShopping";
+import { useNavigate } from "react-router-dom";
 
 
 export default function HistoryShopping() {
   const [search, setSearch] = useState("");
+  const navigate = useNavigate(); 
 
   const filteredCompras = compras.filter((compra) =>
     compra.proveedor.toLowerCase().includes(search.toLowerCase())
@@ -72,6 +74,7 @@ export default function HistoryShopping() {
                     variant="outlined"
                     startIcon={<Visibility />}
                     size="small"
+                    onClick={() => navigate(`/compras/editar`)} 
                   >
                     Ver
                   </Button>
