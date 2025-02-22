@@ -36,7 +36,7 @@ export const ModalSearchProducts: React.FC<ModalSearchToProductsProps> = ({
   );
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>
         <Typography variant="h6" fontWeight="bold">
           Seleccionar Producto

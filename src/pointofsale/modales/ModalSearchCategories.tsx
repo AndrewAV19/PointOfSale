@@ -1,4 +1,8 @@
-import { Close as CloseIcon, Person as PersonIcon, Search as SearchIcon } from "@mui/icons-material";
+import {
+  Close as CloseIcon,
+  Store as StoreIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
 import {
   IconButton,
   Dialog,
@@ -18,32 +22,32 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { useState } from "react";
-import { suppliers } from "../mocks/suppliersMock";
+import { categories } from "../mocks/categoriesMock";
 
-interface ModalSearchToClientProps {
+
+interface ModalSearchToCategoriesProps {
   open: boolean;
   handleClose: () => void;
   handleSelect: (item: any) => void;
 }
 
-export const ModalSearchSuppliers: React.FC<ModalSearchToClientProps> = ({
+export const ModalSearchCategories: React.FC<ModalSearchToCategoriesProps> = ({
   open,
   handleClose,
   handleSelect,
 }) => {
-
   const [search, setSearch] = useState("");
 
-  // Filtrar clientes según el texto de búsqueda
-  const filteredClients = suppliers.filter((supplier) =>
-    supplier.name.toLowerCase().includes(search.toLowerCase())
+  // Filtrar categorias según el texto de búsqueda
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <DialogTitle>
         <Typography variant="h6" fontWeight="bold">
-          Seleccionar Proveedor
+          Seleccionar Categoría
         </Typography>
         <IconButton
           onClick={handleClose}
@@ -56,7 +60,7 @@ export const ModalSearchSuppliers: React.FC<ModalSearchToClientProps> = ({
         {/* Campo de búsqueda */}
         <TextField
           fullWidth
-          placeholder="Buscar proveedor..."
+          placeholder="Buscar Categoría..."
           variant="outlined"
           size="small"
           value={search}
@@ -72,36 +76,36 @@ export const ModalSearchSuppliers: React.FC<ModalSearchToClientProps> = ({
             },
           }}
         />
-        
-        {/* Tabla de proveedores */}
+
+        {/* Tabla de categorias */}
         <TableContainer component={Paper} elevation={3}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell align="center">
-                  <PersonIcon fontSize="small" />
+                  <StoreIcon fontSize="small" />
                 </TableCell>
                 <TableCell>Nombre</TableCell>
-                <TableCell>Email</TableCell>
+                <TableCell>Descripcion</TableCell>
                 <TableCell align="center">Acción</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredClients.length > 0 ? (
-                filteredClients.map((client) => (
-                  <TableRow key={client.id} hover>
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map((category) => (
+                  <TableRow key={category.id} hover>
                     <TableCell align="center">
-                      <PersonIcon color="primary" />
+                      <StoreIcon color="primary" />
                     </TableCell>
-                    <TableCell>{client.name}</TableCell>
-                    <TableCell>{client.email}</TableCell>
+                    <TableCell>{category.name}</TableCell>
+                    <TableCell>{category.description}</TableCell>
                     <TableCell align="center">
                       <Button
                         variant="contained"
                         color="primary"
                         size="small"
                         onClick={() => {
-                          handleSelect(client);
+                          handleSelect(category);
                           handleClose();
                         }}
                       >
@@ -113,7 +117,9 @@ export const ModalSearchSuppliers: React.FC<ModalSearchToClientProps> = ({
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} align="center">
-                    <Typography color="textSecondary">No se encontraron resultados</Typography>
+                    <Typography color="textSecondary">
+                      No se encontraron resultados
+                    </Typography>
                   </TableCell>
                 </TableRow>
               )}

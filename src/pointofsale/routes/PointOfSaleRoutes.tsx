@@ -7,6 +7,7 @@ import HistorySales from "../pages/Sales/HistorySales";
 import HistoryShopping from "../pages/Shopping/HistoryShopping";
 import EditSalePage from "../pages/Sales/EditSalePage";
 import EditShoppingPage from "../pages/Shopping/EditShoppingPage";
+import AddProduct from "../pages/Inventory/AddProduct";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -19,6 +20,8 @@ const PointOfSaleRoutes = () => {
         <Route path="/compras" element={<CreateShoppingPage />}></Route>
         <Route path="/compras/historial" element={<HistoryShopping />}></Route>
         <Route path="/compras/editar" element={<EditShoppingPage />}></Route>
+
+        <Route path="/inventario/productos/agregar" element={<AddProduct />}></Route>
 
         <Route path="/acerca-de" element={<AboutPage />}></Route>
       </Route>

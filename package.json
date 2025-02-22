@@ -12,6 +12,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@hookform/resolvers": "^4.1.1",
     "@mui/icons-material": "^6.4.4",
     "@mui/material": "^6.4.4",
     "@tailwindcss/postcss": "^4.0.6",
@@ -19,10 +20,12 @@
     "jiti": "^2.4.2",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "react-hook-form": "^7.54.2",
     "react-qr-scanner": "^1.0.0-alpha.11",
     "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^7.1.5",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
