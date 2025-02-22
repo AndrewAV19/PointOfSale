@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Drawer,
   List,
@@ -57,17 +57,40 @@ const LogoContainer = styled("div")({
 
 const LeftSidebar: React.FC = () => {
   const navigate = useNavigate();
-  // Guardamos solo el ID del submenú abierto, o null si ninguno está abierto
+  const location = useLocation();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [activeItem, setActiveItem] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Detectar si la ruta pertenece a un subItem
+    const currentItem = menuItems.find(
+      (item) =>
+        item.subItems?.some((subItem) => subItem.path === location.pathname) ||
+        item.path === location.pathname
+    );
+
+    if (currentItem?.subItems) {
+      setOpenSubmenu(currentItem.id);
+    } else {
+      setOpenSubmenu(null);
+    }
+
+    setActiveItem(currentItem?.id ?? null);
+  }, [location.pathname]);
 
   const handleToggleSubmenu = (id: string) => {
-    // Si el submenú actual está abierto, lo cerramos, si no, lo abrimos y cerramos otros
-    setOpenSubmenu(prev => (prev === id ? null : id));
+    setOpenSubmenu((prev) => (prev === id ? null : id));
+    setActiveItem(id);
+  };
+
+  const handleClickItemWithoutSubmenu = (path: string, id: string) => {
+    navigate(path);
+    setOpenSubmenu(null);
+    setActiveItem(id);
   };
 
   return (
     <StyledDrawer variant="permanent" anchor="left">
-      {/* Logo y título */}
       <LogoContainer>
         <Avatar alt="Logo" sx={{ width: 60, height: 60 }} />
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
@@ -77,21 +100,53 @@ const LeftSidebar: React.FC = () => {
 
       <Divider sx={{ borderColor: "#34495E" }} />
 
-      {/* Menú de navegación */}
       <List>
         {menuItems.map((item) => (
           <React.Fragment key={item.id}>
             {item.subItems ? (
               <>
-                <StyledListItemButton onClick={() => handleToggleSubmenu(item.id)}>
-                  <StyledListItemIcon>{item.icon}</StyledListItemIcon>
-                  <StyledListItemText primary={item.text} />
+                <StyledListItemButton
+                  onClick={() => handleToggleSubmenu(item.id)}
+                >
+                  <StyledListItemIcon
+                    sx={{
+                      color: openSubmenu === item.id ? "#1ABC9C" : "#ECF0F1",
+                    }}
+                  >
+                    {item.icon}
+                  </StyledListItemIcon>
+                  <StyledListItemText
+                    primary={item.text}
+                    sx={{
+                      color: openSubmenu === item.id ? "#1ABC9C" : "#ECF0F1",
+                    }}
+                  />
                   {openSubmenu === item.id ? <ExpandLess /> : <ExpandMore />}
                 </StyledListItemButton>
-                <Collapse in={openSubmenu === item.id} timeout="auto" unmountOnExit>
+                <Collapse
+                  in={openSubmenu === item.id}
+                  timeout="auto"
+                  unmountOnExit
+                >
                   <List component="div" disablePadding>
                     {item.subItems.map((subItem) => (
-                      <StyledListItemButton key={subItem.text} sx={{ pl: 4 }} onClick={() => navigate(subItem.path)}>
+                      <StyledListItemButton
+                        key={subItem.text}
+                        sx={{
+                          pl: 4,
+                          backgroundColor:
+                            location.pathname === subItem.path
+                              ? "#16A085"
+                              : "inherit",
+                          "&:hover": {
+                            backgroundColor:
+                              location.pathname === subItem.path
+                                ? "#16A085"
+                                : "rgba(0, 0, 0, 0.08)",
+                          },
+                        }}
+                        onClick={() => navigate(subItem.path)}
+                      >
                         <StyledListItemIcon>{subItem.icon}</StyledListItemIcon>
                         <StyledListItemText primary={subItem.text} />
                       </StyledListItemButton>
@@ -100,9 +155,25 @@ const LeftSidebar: React.FC = () => {
                 </Collapse>
               </>
             ) : (
-              <StyledListItemButton onClick={() => navigate(item.path || "/")}>
-                <StyledListItemIcon>{item.icon}</StyledListItemIcon>
-                <StyledListItemText primary={item.text} />
+              <StyledListItemButton
+                sx={{
+                  backgroundColor:
+                    activeItem === item.id ? "inherit" : "transparent",
+                  "&:hover": { backgroundColor: "transparent" },
+                }}
+                onClick={() =>
+                  handleClickItemWithoutSubmenu(item.path, item.id)
+                }
+              >
+                <StyledListItemIcon
+                  sx={{ color: activeItem === item.id ? "#1ABC9C" : "#ECF0F1" }}
+                >
+                  {item.icon}
+                </StyledListItemIcon>
+                <StyledListItemText
+                  primary={item.text}
+                  sx={{ color: activeItem === item.id ? "#1ABC9C" : "#ECF0F1" }}
+                />
               </StyledListItemButton>
             )}
           </React.Fragment>

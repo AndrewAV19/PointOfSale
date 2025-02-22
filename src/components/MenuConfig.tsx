@@ -19,7 +19,7 @@ export const menuItems = [
     text: "Ventas",
     icon: <StoreIcon />,
     subItems: [
-      { text: "Crear Venta", path: "/ventas", icon: <AddIcon /> },
+      { text: "Crear Venta", path: "/", icon: <AddIcon /> },
       { text: "Historial", path: "/ventas/historial", icon: <HistoryIcon /> },
     ],
   },
