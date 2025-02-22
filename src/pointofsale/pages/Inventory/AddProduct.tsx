@@ -46,6 +46,15 @@ const AddProduct: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
   ) => {
     const { name, value } = e.target;
+  
+    // Validar que el valor sea un número para los campos de precio y stock
+    if (name === "price" || name === "stock") {
+      const numericValue = parseFloat(value as string);
+      if (isNaN(numericValue)) {
+        return;
+      }
+    }
+  
     setProduct((prevProduct) => ({
       ...prevProduct,
       [name as string]: value,
