@@ -8,11 +8,10 @@ import {
   ListItemText,
   Collapse,
   Divider,
-  Avatar,
   styled,
   Typography,
 } from "@mui/material";
-import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { ExpandLess, ExpandMore, Storefront as StorefrontIcon } from "@mui/icons-material";
 import { menuItems } from "./MenuConfig";
 
 const StyledDrawer = styled(Drawer)({
@@ -47,11 +46,11 @@ const StyledListItemIcon = styled(ListItemIcon)({
 });
 
 const LogoContainer = styled("div")({
-  marginBottom: 20,
-  padding: "0 16px",
+  marginBottom: 10,
+  paddingLeft: "10px ",
   display: "flex",
   alignItems: "center",
-  justifyContent: "center",
+  justifyContent: "left",
   gap: "10px",
 });
 
@@ -92,7 +91,7 @@ const LeftSidebar: React.FC = () => {
   return (
     <StyledDrawer variant="permanent" anchor="left">
       <LogoContainer>
-        <Avatar alt="Logo" sx={{ width: 60, height: 60 }} />
+      <StorefrontIcon sx={{ fontSize: 60, color: "#ECF0F1" }} />
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
           Mi Tiendita
         </Typography>
