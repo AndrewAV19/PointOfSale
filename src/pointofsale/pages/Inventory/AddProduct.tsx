@@ -294,7 +294,7 @@ const AddProduct: React.FC = () => {
               handleReset();
             }}
           >
-            Guardar Producto
+            Crear Producto
           </Button>
           <Button
             variant="outlined"

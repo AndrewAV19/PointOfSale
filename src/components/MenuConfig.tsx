@@ -40,8 +40,8 @@ export const menuItems = [
     subItems: [
       { text: "Agregar Producto", path: "/inventario/productos/agregar", icon: <AddIcon /> },
       { text: "Ver Productos", path: "/inventario/productos/historial", icon: <ListIcon /> },
-      { text: "Crear Categoría", path: "/inventario/categorias/crear", icon: <AddIcon /> }, 
-      { text: "Ver Categorías", path: "/inventario/categorias", icon: <ListIcon /> }, 
+      { text: "Crear Categoría", path: "/inventario/categorias/agregar", icon: <AddIcon /> }, 
+      { text: "Ver Categorías", path: "/inventario/categorias/historial", icon: <ListIcon /> }, 
       { text: "Historial de Movimientos", path: "/inventario/historial", icon: <HistoryIcon /> },
     ],
   },

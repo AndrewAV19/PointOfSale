@@ -9,6 +9,8 @@ import EditSalePage from "../pages/Sales/EditSalePage";
 import EditShoppingPage from "../pages/Shopping/EditShoppingPage";
 import AddProduct from "../pages/Inventory/AddProduct";
 import HistoryProducts from "../pages/Inventory/HistoryProducts";
+import AddCategory from "../pages/Categories/AddCategory";
+import HistoryCategories from "../pages/Categories/HistoryCategories";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -24,6 +26,9 @@ const PointOfSaleRoutes = () => {
 
         <Route path="/inventario/productos/agregar" element={<AddProduct />}></Route>
         <Route path="/inventario/productos/historial" element={<HistoryProducts />}></Route>
+
+        <Route path="/inventario/categorias/agregar" element={<AddCategory />}></Route>
+        <Route path="/inventario/categorias/historial" element={<HistoryCategories />}></Route>
 
         <Route path="/acerca-de" element={<AboutPage />}></Route>
       </Route>
