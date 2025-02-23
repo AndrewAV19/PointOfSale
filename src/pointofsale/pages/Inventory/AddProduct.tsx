@@ -134,6 +134,7 @@ const AddProduct: React.FC = () => {
     // Si todos los campos están correctos
     setSnackbarSeverity("success");
     handleOpenSnackbar("Producto agregado correctamente.");
+    console.log("categoria: "+ category)
   };
 
   return (

@@ -1,16 +1,44 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Table, TableHead, TableRow, TableCell, TableBody, Input, Button } from "@mui/material";
+import {
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Input,
+  Button,
+} from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { products } from "../../mocks/historyProductsMock";
+import { products as initialProducts } from "../../mocks/historyProductsMock";
+import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
 export default function HistoryProducts() {
   const [search, setSearch] = useState("");
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const [products, setProducts] = useState(initialProducts);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<
+    string | number | null
+  >(null);
 
+  console.log(setSelectedProductId);
+
+  // Filtrar productos según la búsqueda
   const filteredProducts = products.filter((venta) =>
     venta.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Función para eliminar un producto
+  const handleDeleteClick = (id: string | number) => {
+    setSelectedProductId(id);
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setProducts(products.filter((p) => p.id !== selectedProductId));
+    setOpenDialog(false);
+  };
 
   return (
     <div className="p-6 mx-auto bg-white shadow-lg rounded-lg">
@@ -38,7 +66,7 @@ export default function HistoryProducts() {
               <TableCell>Categoría</TableCell>
               <TableCell>Precio</TableCell>
               <TableCell>Stock</TableCell>
-              <TableCell></TableCell>
+              <TableCell>Foto</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -56,9 +84,20 @@ export default function HistoryProducts() {
                     variant="outlined"
                     startIcon={<Visibility />}
                     size="small"
-                    onClick={() => navigate(`/inventario/productos/editar`)} 
+                    onClick={() =>
+                      navigate(`/inventario/productos/editar/${venta.id}`)
+                    }
                   >
                     Ver
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => handleDeleteClick(venta.id)}
+                    sx={{ ml: 1 }}
+                  >
+                    Eliminar
                   </Button>
                 </TableCell>
               </TableRow>
@@ -66,6 +105,14 @@ export default function HistoryProducts() {
           </TableBody>
         </Table>
       </div>
+      {/* Modal de Confirmación */}
+      <ConfirmDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Eliminación"
+        message="¿Estás seguro de que deseas eliminar este producto?"
+      />
     </div>
   );
 }

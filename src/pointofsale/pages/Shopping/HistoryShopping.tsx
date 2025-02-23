@@ -1,13 +1,26 @@
 import { useState } from "react";
-import { Table, TableHead, TableRow, TableCell, TableBody, Input, Button } from "@mui/material";
+import {
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Input,
+  Button,
+} from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { compras } from "../../mocks/historyShopping";
+import { compras as initialShopping } from "../../mocks/historyShopping";
 import { useNavigate } from "react-router-dom";
-
+import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
 export default function HistoryShopping() {
   const [search, setSearch] = useState("");
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const [compras, setCompras] = useState(initialShopping);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedShoppingId, setSelectedShoppingId] = useState<string | number | null>(null);
+
+  console.log(setSelectedShoppingId);
 
   const filteredCompras = compras.filter((compra) =>
     compra.proveedor.toLowerCase().includes(search.toLowerCase())
@@ -22,6 +35,16 @@ export default function HistoryShopping() {
       default:
         return "bg-red-200 text-red-800";
     }
+  };
+
+  const handleDeleteClick = (id: string | number) => {
+    setSelectedShoppingId(id);
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setCompras(compras.filter((p) => p.id !== selectedShoppingId));
+    setOpenDialog(false);
   };
 
   return (
@@ -74,9 +97,18 @@ export default function HistoryShopping() {
                     variant="outlined"
                     startIcon={<Visibility />}
                     size="small"
-                    onClick={() => navigate(`/compras/editar`)} 
+                    onClick={() => navigate(`/compras/editar`)}
                   >
                     Ver
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => handleDeleteClick(compra.id)}
+                    sx={{ ml: 1 }}
+                  >
+                    Eliminar
                   </Button>
                 </TableCell>
               </TableRow>
@@ -84,6 +116,14 @@ export default function HistoryShopping() {
           </TableBody>
         </Table>
       </div>
+      {/* Modal de Confirmación */}
+      <ConfirmDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Eliminación"
+        message="¿Estás seguro de que deseas eliminar esta compra?"
+      />
     </div>
   );
 }

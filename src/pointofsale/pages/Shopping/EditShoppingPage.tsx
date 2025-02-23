@@ -31,10 +31,11 @@ import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 import { products } from "../../mocks/productMock";
 import { Product } from "../../interfaces/product.interface";
 import { mockPurchase } from "../../mocks/shoppingMock";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const EditShoppingPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [supplier, setSupplier] = useState(mockPurchase.supplier.id);
   const [openModalProducts, setOpenModalProducts] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
@@ -50,6 +51,13 @@ const EditShoppingPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    // Verifica si el mensaje debe aparecer luego de la navegación
+    if (location.pathname === "/compras/historial" && messageSnackbar) {
+      setOpenSnackbar(true);
+    }
+  }, [location, messageSnackbar]);
 
   // Función para calcular el total de la compra
   const calculateTotal = () => {
@@ -209,6 +217,7 @@ const EditShoppingPage: React.FC = () => {
 
   // Eliminar la compra
   const handleDeletePurchase = () => {
+    navigate(`/compras/historial`)
     setSnackbarSeverity("success");
     handleOpenSnackbar("Compra Eliminada Correctamente");
     handleReset();

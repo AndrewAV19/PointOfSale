@@ -212,6 +212,7 @@ const EditSalePage: React.FC = () => {
 
   // Eliminar la venta
   const handleDeleteSale = () => {
+    navigate(`/ventas/historial`)
     setSnackbarSeverity("success");
     handleOpenSnackbar("Venta Eliminada Correctamente");
     handleReset();

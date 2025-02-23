@@ -1,12 +1,28 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Table, TableHead, TableRow, TableCell, TableBody, Input, Button } from "@mui/material";
+import {
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Input,
+  Button,
+} from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { ventas } from "../../mocks/historySalesMock";
+import { ventas as initialSale } from "../../mocks/historySalesMock";
+import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
 export default function HistorySales() {
   const [search, setSearch] = useState("");
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const [ventas, setVentas] = useState(initialSale);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedSaleId, setSelectedSaleId] = useState<string | number | null>(
+    null
+  );
+
+  console.log(setSelectedSaleId);
 
   const filteredVentas = ventas.filter((venta) =>
     venta.cliente.toLowerCase().includes(search.toLowerCase())
@@ -21,6 +37,16 @@ export default function HistorySales() {
       default:
         return "bg-red-200 text-red-800";
     }
+  };
+
+  const handleDeleteClick = (id: string | number) => {
+    setSelectedSaleId(id);
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setVentas(ventas.filter((p) => p.id !== selectedSaleId));
+    setOpenDialog(false);
   };
 
   return (
@@ -73,9 +99,18 @@ export default function HistorySales() {
                     variant="outlined"
                     startIcon={<Visibility />}
                     size="small"
-                    onClick={() => navigate(`/ventas/editar`)} 
+                    onClick={() => navigate(`/ventas/editar`)}
                   >
                     Ver
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    onClick={() => handleDeleteClick(venta.id)}
+                    sx={{ ml: 1 }}
+                  >
+                    Eliminar
                   </Button>
                 </TableCell>
               </TableRow>
@@ -83,6 +118,14 @@ export default function HistorySales() {
           </TableBody>
         </Table>
       </div>
+      {/* Modal de Confirmación */}
+      <ConfirmDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Eliminación"
+        message="¿Estás seguro de que deseas eliminar esta venta?"
+      />
     </div>
   );
 }
