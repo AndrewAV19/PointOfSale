@@ -12,7 +12,8 @@ import {
   Typography,
 } from "@mui/material";
 import { ExpandLess, ExpandMore, Storefront as StorefrontIcon } from "@mui/icons-material";
-import { menuItems } from "./MenuConfig";
+import { navigationMenu } from "./NavigationMenu";
+
 
 const StyledDrawer = styled(Drawer)({
   width: 240,
@@ -54,7 +55,7 @@ const LogoContainer = styled("div")({
   gap: "10px",
 });
 
-const LeftSidebar: React.FC = () => {
+const SideMenu: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
@@ -62,7 +63,7 @@ const LeftSidebar: React.FC = () => {
 
   useEffect(() => {
     // Detectar si la ruta pertenece a un subItem
-    const currentItem = menuItems.find(
+    const currentItem = navigationMenu.find(
       (item) =>
         item.subItems?.some((subItem) => subItem.path === location.pathname) ||
         item.path === location.pathname
@@ -100,7 +101,7 @@ const LeftSidebar: React.FC = () => {
       <Divider sx={{ borderColor: "#34495E" }} />
 
       <List>
-        {menuItems.map((item) => (
+        {navigationMenu.map((item) => (
           <React.Fragment key={item.id}>
             {item.subItems ? (
               <>
@@ -182,4 +183,4 @@ const LeftSidebar: React.FC = () => {
   );
 };
 
-export default LeftSidebar;
+export default SideMenu;

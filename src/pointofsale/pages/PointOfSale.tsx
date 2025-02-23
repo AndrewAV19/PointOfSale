@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, useMediaQuery, useTheme, Button, Drawer } from "@mui/material";
-import LeftSidebar from "../../components/LeftDrawer";
+import SideMenu from "../../components/SideMenu";
 import { Outlet } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu"; 
 
@@ -21,7 +21,7 @@ const PointOfSale: React.FC = () => {
       }}
     >
       {/* Menú a la izquierda - Oculto en móviles */}
-      {!isMobile && <LeftSidebar />}
+      {!isMobile && <SideMenu />}
 
       {/* Contenido principal */}
       <Box
@@ -65,7 +65,7 @@ const PointOfSale: React.FC = () => {
           },
         }}
       >
-        <LeftSidebar />
+        <SideMenu />
       </Drawer>
     </Box>
   );
