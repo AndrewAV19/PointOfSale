@@ -11,6 +11,8 @@ import AddProduct from "../pages/Inventory/AddProduct";
 import HistoryProducts from "../pages/Inventory/HistoryProducts";
 import AddCategory from "../pages/Categories/AddCategory";
 import HistoryCategories from "../pages/Categories/HistoryCategories";
+import AddClient from "../pages/Clients/AddClient";
+import AddSupplier from "../pages/Suppliers/AddSupplier";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -29,6 +31,10 @@ const PointOfSaleRoutes = () => {
 
         <Route path="/inventario/categorias/agregar" element={<AddCategory />}></Route>
         <Route path="/inventario/categorias/historial" element={<HistoryCategories />}></Route>
+
+        <Route path="/clientes/agregar" element={<AddClient />}></Route>
+
+        <Route path="/proveedores/agregar" element={<AddSupplier />}></Route>
 
         <Route path="/acerca-de" element={<AboutPage />}></Route>
       </Route>

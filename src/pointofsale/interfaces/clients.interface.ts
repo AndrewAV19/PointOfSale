@@ -6,9 +6,7 @@ export interface Clients {
     address: string;
     city: string;
     state: string;
-    zipCode: string;
+    zipCode: number;
     country: string;
-    createdAt: Date;
-    updatedAt: Date;
   }
   

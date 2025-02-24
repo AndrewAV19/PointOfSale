@@ -42,7 +42,6 @@ export const navigationMenu = [
       { text: "Ver Productos", path: "/inventario/productos/historial", icon: <ListIcon /> },
       { text: "Crear Categoría", path: "/inventario/categorias/agregar", icon: <AddIcon /> }, 
       { text: "Ver Categorías", path: "/inventario/categorias/historial", icon: <ListIcon /> }, 
-      { text: "Historial de Movimientos", path: "/inventario/historial", icon: <HistoryIcon /> },
     ],
   },
   {
