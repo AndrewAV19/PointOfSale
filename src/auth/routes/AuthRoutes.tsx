@@ -1,17 +1,21 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import LoginPage from "../pages/LoginPage"
 import RegisterPage from "../pages/RegisterPage"
+import PublicRoute from "../../router/PublicRoute";
 
 const AuthRoutes = () => {
   return (
     <Routes>
-      <Route path="login" element={ <LoginPage/> }/>
-      <Route path="register" element={ <RegisterPage/> }/>
+      {/* Protege las rutas de autenticación con PublicRoute */}
+      <Route element={<PublicRoute />}>
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+      </Route>
 
-      <Route path="/*" element={ <Navigate to="/auth/login"/> }/>
-
+      {/* Redirige al login si la ruta no coincide */}
+      <Route path="/*" element={<Navigate to="/auth/login" />} />
     </Routes>
-  )
-}
+  );
+};
 
-export default AuthRoutes
+export default AuthRoutes;

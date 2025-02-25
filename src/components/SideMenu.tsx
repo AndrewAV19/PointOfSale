@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { ExpandLess, ExpandMore, Storefront as StorefrontIcon } from "@mui/icons-material";
 import { navigationMenu } from "./NavigationMenu";
+import useLogout from "../hooks/useLogout";
 
 
 const StyledDrawer = styled(Drawer)({
@@ -60,6 +61,7 @@ const SideMenu: React.FC = () => {
   const location = useLocation();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<string | null>(null);
+  const handleLogout = useLogout();
 
   useEffect(() => {
     // Detectar si la ruta pertenece a un subItem
@@ -84,7 +86,11 @@ const SideMenu: React.FC = () => {
   };
 
   const handleClickItemWithoutSubmenu = (path: string, id: string) => {
-    navigate(path);
+    if (id === "logout") {
+      handleLogout(); 
+    } else {
+      navigate(path);
+    }
     setOpenSubmenu(null);
     setActiveItem(id);
   };
