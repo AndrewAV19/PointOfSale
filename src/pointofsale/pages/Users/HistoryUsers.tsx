@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -10,52 +10,57 @@ import {
   Button,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { ventas as initialSale } from "../../mocks/historySalesMock";
-import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
-export default function HistorySales() {
+//import { users as initialUsers } from "../../mocks/historyUsersMock";
+import ConfirmDialog from "../../../components/ConfirmDeleteModal";
+import { storeUsers } from "../../../stores/users.store";
+
+export default function HistoryUsers() {
+  const { listUsers, getUsers, deleteUser } = storeUsers();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const [ventas, setVentas] = useState(initialSale);
+  const [users, setUsers] = useState(listUsers);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedSaleId, setSelectedSaleId] = useState<string | number | null>(
-    null
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    getUsers();
+  }, [getUsers]);
+
+  useEffect(() => {
+    setUsers(listUsers);
+  }, [listUsers]);
+
+
+
+  const filteredVentas = users.filter((venta) =>
+    venta?.name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  console.log(setSelectedSaleId);
-
-  const filteredVentas = ventas.filter((venta) =>
-    venta.cliente.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const getEstadoClase = (estado: string) => {
-    switch (estado) {
-      case "Completado":
-        return "bg-green-200 text-green-800";
-      case "Pendiente":
-        return "bg-yellow-200 text-yellow-800";
-      default:
-        return "bg-red-200 text-red-800";
-    }
-  };
-
-  const handleDeleteClick = (id: string | number) => {
-    setSelectedSaleId(id);
+  const handleDeleteClick = (id: number) => {
+    setSelectedUserId(id);
     setOpenDialog(true);
   };
 
-  const handleConfirmDelete = () => {
-    setVentas(ventas.filter((p) => p.id !== selectedSaleId));
-    setOpenDialog(false);
+  const handleConfirmDelete = async () => {
+    if (selectedUserId) {
+      try {
+        await deleteUser(selectedUserId);
+        setUsers(users.filter((user) => user.id !== selectedUserId));
+        setOpenDialog(false);
+      } catch (error) {
+        console.error("Error al eliminar el usuario:", error);
+      }
+    }
   };
 
   return (
     <div className="p-6 mx-auto bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">Historial de Ventas</h2>
+      <h2 className="text-2xl font-bold mb-4">Historial de Usuarios</h2>
 
       <div className="flex items-center gap-2 mb-4">
         <Input
-          placeholder="Buscar por cliente..."
+          placeholder="Buscar por nombre..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="border px-2 py-1 rounded w-full"
@@ -71,17 +76,18 @@ export default function HistorySales() {
           <TableHead>
             <TableRow className="bg-gray-200">
               <TableCell>ID</TableCell>
-              <TableCell>Cliente</TableCell>
-              <TableCell>Total</TableCell>
-              <TableCell>Fecha</TableCell>
-              <TableCell>Estado</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Telefono</TableCell>
+              <TableCell>Direccion</TableCell>
+              <TableCell>Roles</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredVentas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={7} align="center">
                   <div
                     style={{
                       padding: "20px",
@@ -89,25 +95,24 @@ export default function HistorySales() {
                       textAlign: "center",
                     }}
                   >
-                    Aún no se han registrado ventas.
+                    Aún no se han agregado usuarios.
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              filteredVentas.map((venta) => (
-                <TableRow key={venta.id} className="hover:bg-gray-100">
-                  <TableCell>{venta.id}</TableCell>
-                  <TableCell>{venta.cliente}</TableCell>
-                  <TableCell>{venta.total}</TableCell>
-                  <TableCell>{venta.fecha}</TableCell>
+              filteredVentas.map((user) => (
+                <TableRow key={user.id} className="hover:bg-gray-100">
+                  <TableCell>{user.id}</TableCell>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.phone}</TableCell>
+                  <TableCell>{user.address}</TableCell>
                   <TableCell>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getEstadoClase(
-                        venta.estado
-                      )}`}
-                    >
-                      {venta.estado}
-                    </span>
+                    <ul>
+                      {user.roles.map((role) => (
+                        <li key={role.id}>{role.name}</li>
+                      ))}
+                    </ul>
                   </TableCell>
                   <TableCell>
                     <Button
@@ -122,7 +127,7 @@ export default function HistorySales() {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(venta.id)}
+                      onClick={() => handleDeleteClick(user.id)}
                       sx={{ ml: 1 }}
                     >
                       Eliminar
@@ -140,7 +145,7 @@ export default function HistorySales() {
         onClose={() => setOpenDialog(false)}
         onConfirm={handleConfirmDelete}
         title="Confirmar Eliminación"
-        message="¿Estás seguro de que deseas eliminar esta venta?"
+        message="¿Estás seguro de que deseas eliminar este usuario?"
       />
     </div>
   );

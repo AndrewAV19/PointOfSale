@@ -14,6 +14,7 @@ import HistoryCategories from "../pages/Categories/HistoryCategories";
 import AddClient from "../pages/Clients/AddClient";
 import AddSupplier from "../pages/Suppliers/AddSupplier";
 import AddUser from "../pages/Users/AddUser";
+import HistoryUsers from "../pages/Users/HistoryUsers";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -38,6 +39,7 @@ const PointOfSaleRoutes = () => {
         <Route path="/proveedores/agregar" element={<AddSupplier />}></Route>
 
         <Route path="/usuarios/agregar" element={<AddUser />}></Route>
+        <Route path="/usuarios/historial" element={<HistoryUsers />}></Route>
 
         <Route path="/acerca-de" element={<AboutPage />}></Route>
       </Route>

@@ -4,7 +4,12 @@ import { Users } from "../pointofsale/interfaces/users.interface";
 export class UsersService {
   static readonly getUsers = async (): Promise<Users[]> => {
     try {
-      const response = await api.get<[Users]>("/users");
+      const response = await api.get<[Users]>("/users", {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        }
+      });
       console.log(response);
       return response.data;
     } catch (error) {
@@ -39,7 +44,12 @@ export class UsersService {
     roleIds: number[];  
   }): Promise<Users[]> => {
     try {
-      const response = await api.post<Users[]>("/users", dataSend);
+      const response = await api.post<Users[]>("/users", dataSend,{
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        }
+      });
       
       console.log(response.data);
       return response.data;
@@ -49,14 +59,20 @@ export class UsersService {
     }
   };
 
-  // static readonly deleteCell = async (id: number): Promise<Cell[]> => {
-  //   try {
-  //     const { data } = await backOfficeApi.delete<Cell[]>(
-  //       `/api-backoffice-Cells/Cells/delete-by-id/${id}`
-  //     );
-  //     return data;
-  //   } catch (error) {
-  //     throw new Error("UnAuthorized");
-  //   }
-  // };
+  static readonly deleteUser = async (id: number): Promise<void> => {
+    try {
+      await api.delete(`/users/${id}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        }
+      });
+      console.log(`User with id ${id} deleted successfully`);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error al eliminar el usuario");
+    }
+  };
+
+
 }

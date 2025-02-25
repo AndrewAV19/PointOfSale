@@ -18,7 +18,9 @@ export default function HistoryShopping() {
   const navigate = useNavigate();
   const [compras, setCompras] = useState(initialShopping);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedShoppingId, setSelectedShoppingId] = useState<string | number | null>(null);
+  const [selectedShoppingId, setSelectedShoppingId] = useState<
+    string | number | null
+  >(null);
 
   console.log(setSelectedShoppingId);
 
@@ -77,42 +79,58 @@ export default function HistoryShopping() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredCompras.map((compra) => (
-              <TableRow key={compra.id} className="hover:bg-gray-100">
-                <TableCell>{compra.id}</TableCell>
-                <TableCell>{compra.proveedor}</TableCell>
-                <TableCell>{compra.total}</TableCell>
-                <TableCell>{compra.fecha}</TableCell>
-                <TableCell>
-                  <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getEstadoClase(
-                      compra.estado
-                    )}`}
+            {filteredCompras.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  <div
+                    style={{
+                      padding: "20px",
+                      fontSize: "16px",
+                      textAlign: "center",
+                    }}
                   >
-                    {compra.estado}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Visibility />}
-                    size="small"
-                    onClick={() => navigate(`/compras/editar`)}
-                  >
-                    Ver
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => handleDeleteClick(compra.id)}
-                    sx={{ ml: 1 }}
-                  >
-                    Eliminar
-                  </Button>
+                    Aún no se han registrado compras.
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredCompras.map((compra) => (
+                <TableRow key={compra.id} className="hover:bg-gray-100">
+                  <TableCell>{compra.id}</TableCell>
+                  <TableCell>{compra.proveedor}</TableCell>
+                  <TableCell>{compra.total}</TableCell>
+                  <TableCell>{compra.fecha}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getEstadoClase(
+                        compra.estado
+                      )}`}
+                    >
+                      {compra.estado}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Visibility />}
+                      size="small"
+                      onClick={() => navigate(`/compras/editar`)}
+                    >
+                      Ver
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleDeleteClick(compra.id)}
+                      sx={{ ml: 1 }}
+                    >
+                      Eliminar
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

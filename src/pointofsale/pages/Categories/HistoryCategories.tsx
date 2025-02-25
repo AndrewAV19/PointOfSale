@@ -10,7 +10,7 @@ import {
   Button,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { categories as initialCategories} from '../../mocks/categoriesMock';
+import { categories as initialCategories } from "../../mocks/categoriesMock";
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
 export default function HistoryCategories() {
@@ -68,34 +68,50 @@ export default function HistoryCategories() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredCategories.map((category) => (
-              <TableRow key={category.id} className="hover:bg-gray-100">
-                <TableCell>{category.id}</TableCell>
-                <TableCell>{category.name}</TableCell>
-                <TableCell>{category.description}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Visibility />}
-                    size="small"
-                    onClick={() =>
-                      navigate(`/inventario/categorias/editar/${category.id}`)
-                    }
+            {filteredCategories.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  <div
+                    style={{
+                      padding: "20px",
+                      fontSize: "16px",
+                      textAlign: "center",
+                    }}
                   >
-                    Ver
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => handleDeleteClick(category.id)}
-                    sx={{ ml: 1 }}
-                  >
-                    Eliminar
-                  </Button>
+                    Aún no se han registrado categorías.
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredCategories.map((category) => (
+                <TableRow key={category.id} className="hover:bg-gray-100">
+                  <TableCell>{category.id}</TableCell>
+                  <TableCell>{category.name}</TableCell>
+                  <TableCell>{category.description}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Visibility />}
+                      size="small"
+                      onClick={() =>
+                        navigate(`/inventario/categorias/editar/${category.id}`)
+                      }
+                    >
+                      Ver
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleDeleteClick(category.id)}
+                      sx={{ ml: 1 }}
+                    >
+                      Eliminar
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

@@ -71,37 +71,53 @@ export default function HistoryProducts() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredProducts.map((venta) => (
-              <TableRow key={venta.id} className="hover:bg-gray-100">
-                <TableCell>{venta.id}</TableCell>
-                <TableCell>{venta.name}</TableCell>
-                <TableCell>{venta.category.name}</TableCell>
-                <TableCell>{venta.price}</TableCell>
-                <TableCell>{venta.stock}</TableCell>
-                <TableCell>{venta.photo}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outlined"
-                    startIcon={<Visibility />}
-                    size="small"
-                    onClick={() =>
-                      navigate(`/inventario/productos/editar/${venta.id}`)
-                    }
+            {filteredProducts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <div
+                    style={{
+                      padding: "20px",
+                      fontSize: "16px",
+                      textAlign: "center",
+                    }}
                   >
-                    Ver
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    onClick={() => handleDeleteClick(venta.id)}
-                    sx={{ ml: 1 }}
-                  >
-                    Eliminar
-                  </Button>
+                    Aún no se han registrado productos.
+                  </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredProducts.map((producto) => (
+                <TableRow key={producto.id} className="hover:bg-gray-100">
+                  <TableCell>{producto.id}</TableCell>
+                  <TableCell>{producto.name}</TableCell>
+                  <TableCell>{producto.category.name}</TableCell>
+                  <TableCell>{producto.price}</TableCell>
+                  <TableCell>{producto.stock}</TableCell>
+                  <TableCell>{producto.photo}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Visibility />}
+                      size="small"
+                      onClick={() =>
+                        navigate(`/inventario/productos/editar/${producto.id}`)
+                      }
+                    >
+                      Ver
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleDeleteClick(producto.id)}
+                      sx={{ ml: 1 }}
+                    >
+                      Eliminar
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

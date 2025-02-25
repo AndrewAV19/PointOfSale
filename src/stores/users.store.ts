@@ -20,9 +20,11 @@ interface UsersState {
     country: string;
     roleIds: number[];  
   }) => Promise<Users[]>;
+
+  deleteUser: (id: number) => Promise<void>;
 }
 
-const usersStore: StateCreator<UsersState> = (set) => ({
+const usersStore: StateCreator<UsersState> = (set, get) => ({
   listUsers: [],
   loading: false,
 
@@ -48,6 +50,19 @@ const usersStore: StateCreator<UsersState> = (set) => ({
 
       set({ loading: false });
       throw new Error("Error al crear el usuario");
+    }
+  },
+
+  deleteUser: async (id: number) => {
+    try {
+      set({ loading: true });
+      await UsersService.deleteUser(id);
+      const updatedUsers = get().listUsers.filter(user => user.id !== id);
+      set({ listUsers: updatedUsers, loading: false });
+    } catch (error) {
+      console.error(error);
+      set({ loading: false });
+      throw new Error("Error al eliminar el usuario");
     }
   },
 });
