@@ -10,6 +10,7 @@ import {
   Alert,
   InputAdornment,
   MenuItem,
+  IconButton,
 } from "@mui/material";
 import {
   Save as SaveIcon,
@@ -17,27 +18,30 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   LocationOn as LocationOnIcon,
-  SupervisorAccount as RoleIcon
+  SupervisorAccount as RoleIcon,
+  Visibility,
+  VisibilityOff,
 } from "@mui/icons-material";
-import { Users } from "../../interfaces/users.interface";
+import { UserRequest } from "../../interfaces/users.interface";
+import { storeUsers } from "../../../stores/users.store";
 
 const AddUser: React.FC = () => {
-  const initialUserState: Users = {
-    id: 0,
+  const initialUserState: UserRequest = {
     name: "",
     email: "",
-    password:"",
+    password: "",
     phone: "",
     address: "",
     city: "",
     state: "",
     zipCode: 0,
     country: "",
-    rol: "",
-    admin: false,
+    roleIds: [],
   };
 
-  const [user, setUser] = useState<Users>(initialUserState);
+  const [user, setUser] = useState<UserRequest>(initialUserState);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rolesSeleccionados, setRolesSeleccionados] = useState<number[]>([]);
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
@@ -54,22 +58,31 @@ const AddUser: React.FC = () => {
         ...prevUser,
         [name]: numericValue ? parseInt(numericValue, 10) : 0,
       }));
+    } else if (name === "rol") {
+      setUser((prevUser) => ({ ...prevUser, [name]: value }));
+
+      if (value === "Administrador") {
+        setRolesSeleccionados([1, 2]);
+      } else if (value === "Empleado") {
+        setRolesSeleccionados([1]);
+      } else {
+        setRolesSeleccionados([]);
+      }
     } else {
-      setUser((prevClient) => ({
-        ...prevClient,
-        [name]: value,
-      }));
+      setUser((prevUser) => ({ ...prevUser, [name]: value }));
     }
   };
+
+  console.log(rolesSeleccionados);
 
   const handleReset = () => {
     setUser(initialUserState);
   };
 
-  const handleConfirm = () => {
-    if (!user.name || !user.email || !user.phone) {
+  const handleConfirm = async () => {
+    if (!user.name || !user.email || !user.phone || !user.password) {
       setSnackbarSeverity("error");
-      setMessageSnackbar("Por favor, completa los campos obligatorios.");
+      setMessageSnackbar("Por favor, completa todos los campos obligatorios.");
       setOpenSnackbar(true);
       return;
     }
@@ -79,10 +92,31 @@ const AddUser: React.FC = () => {
       setOpenSnackbar(true);
       return;
     }
-    setSnackbarSeverity("success");
-    setMessageSnackbar("Cliente agregado correctamente.");
-    setOpenSnackbar(true);
-    handleReset();
+
+    try {
+      // Llama a la función createClient del store
+      await storeUsers.getState().createUser({
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        state: user.state,
+        zipCode: user.zipCode,
+        country: user.country,
+        roleIds: rolesSeleccionados,
+      });
+
+      setSnackbarSeverity("success");
+      setMessageSnackbar("Usuario agregado correctamente.");
+      setOpenSnackbar(true);
+      handleReset();
+    } catch (error) {
+      setSnackbarSeverity("error");
+      setMessageSnackbar("Error al crear el usuario.");
+      setOpenSnackbar(true);
+    }
   };
 
   return (
@@ -124,6 +158,33 @@ const AddUser: React.FC = () => {
                   startAdornment: (
                     <InputAdornment position="start">
                       <EmailIcon />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              fullWidth
+              label="Contraseña"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              value={user.password}
+              onChange={handleChange}
+              variant="outlined"
+              required
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
                     </InputAdornment>
                   ),
                 },
@@ -217,7 +278,7 @@ const AddUser: React.FC = () => {
               fullWidth
               label="Rol"
               name="rol"
-              value={user.rol}
+              value={user.roleIds}
               onChange={handleChange}
               variant="outlined"
               required

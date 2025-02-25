@@ -66,6 +66,7 @@ const LoginPage: React.FC = () => {
       // Si la autenticación es exitosa, guarda el token en el localStorage
       localStorage.setItem("token", response.token);
       localStorage.setItem("loginTime", new Date().toISOString());
+      localStorage.setItem("roles", response.roles);
 
       // Redirigir al usuario después de un inicio de sesión exitoso
       navigate("/");
