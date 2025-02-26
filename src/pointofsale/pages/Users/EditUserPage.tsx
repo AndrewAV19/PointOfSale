@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextField,
   Button,
@@ -21,11 +21,15 @@ import {
   SupervisorAccount as RoleIcon,
   Visibility,
   VisibilityOff,
+  Delete as DeleteIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { UserRequest } from "../../interfaces/users.interface";
 import { storeUsers } from "../../../stores/users.store";
+import { dataStore } from "../../../stores/generalData.store";
+import { useNavigate } from "react-router-dom";
 
-const AddUser: React.FC = () => {
+const EditUserPage: React.FC = () => {
   const initialUserState: UserRequest = {
     name: "",
     email: "",
@@ -38,16 +42,36 @@ const AddUser: React.FC = () => {
     country: "",
     roleIds: [],
   };
-
+  const navigate = useNavigate();
   const [user, setUser] = useState<UserRequest>(initialUserState);
   const [showPassword, setShowPassword] = useState(false);
   const [rolesSeleccionados, setRolesSeleccionados] = useState<number[]>([]);
-
+  const { selectedUser } = dataStore();
+  const { deleteUser } = storeUsers();
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
     "success"
   );
   const [messageSnackbar, setMessageSnackbar] = useState("");
+  console.log(rolesSeleccionados);
+
+  useEffect(() => {
+    const roleIds = selectedUser?.roles.map((role) => role.id);
+    if (selectedUser) {
+      setUser({
+        name: selectedUser.name,
+        email: selectedUser.email,
+        //password: selectedUser.password,
+        phone: selectedUser.phone,
+        address: selectedUser.address,
+        city: selectedUser.city,
+        state: selectedUser.state,
+        zipCode: selectedUser.zipCode,
+        country: selectedUser.country,
+        roleIds: roleIds ?? [],
+      });
+    }
+  }, [selectedUser]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -73,13 +97,11 @@ const AddUser: React.FC = () => {
     }
   };
 
-  console.log(rolesSeleccionados);
-
   const handleReset = () => {
     setUser(initialUserState);
   };
 
-  const handleConfirm = async () => {
+  const handleSaveChanges = async () => {
     if (!user.name || !user.email || !user.phone || !user.password) {
       setSnackbarSeverity("error");
       setMessageSnackbar("Por favor, completa todos los campos obligatorios.");
@@ -90,44 +112,65 @@ const AddUser: React.FC = () => {
       setSnackbarSeverity("error");
       setMessageSnackbar("Correo electrónico no válido.");
       setOpenSnackbar(true);
-      return;
     }
 
-    try {
-      // Llama a la función createClient del store
-      await storeUsers.getState().createUser({
-        name: user.name,
-        email: user.email,
-        password: user.password,
-        phone: user.phone,
-        address: user.address,
-        city: user.city,
-        state: user.state,
-        zipCode: user.zipCode,
-        country: user.country,
-        roleIds: rolesSeleccionados,
-      });
+    // try {
+    //   // Llama a la función updateUser del store
+    //   await storeUsers.getState().updateUser(selectedUser?.id, {
+    //     name: user.name,
+    //     email: user.email,
+    //     password: user.password,
+    //     phone: user.phone,
+    //     address: user.address,
+    //     city: user.city,
+    //     state: user.state,
+    //     zipCode: user.zipCode,
+    //     country: user.country,
+    //     roleIds: rolesSeleccionados,
+    //   });
 
-      setSnackbarSeverity("success");
-      setMessageSnackbar("Usuario agregado correctamente.");
-      setOpenSnackbar(true);
-      handleReset();
+    //   setSnackbarSeverity("success");
+    //   setMessageSnackbar("Usuario actualizado correctamente.");
+    //   setOpenSnackbar(true);
+    // } catch (error) {
+    //   setSnackbarSeverity("error");
+    //   setMessageSnackbar("Error al actualizar el usuario.");
+    //   setOpenSnackbar(true);
+    // }
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      await deleteUser(selectedUser?.id ?? 0);
     } catch (error) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Error al crear el usuario.");
-      setOpenSnackbar(true);
+      console.error("Error al eliminar el usuario:", error);
     }
   };
 
+  const handleGoBack = () => {
+    navigate(-1); 
+  };
+
+
   return (
     <Container sx={{ py: 4 }}>
+      {/* Botón para regresar */}
+      <Box sx={{ marginBottom: 3 }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={handleGoBack}
+        >
+          Regresar
+        </Button>
+      </Box>
       <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
         <Typography
           variant="h4"
           component="h1"
           sx={{ mb: 4, textAlign: "center", fontWeight: "bold" }}
         >
-          Agregar Usuario
+          Editar Usuario
         </Typography>
 
         {/* Formulario */}
@@ -304,7 +347,7 @@ const AddUser: React.FC = () => {
               variant="contained"
               color="primary"
               startIcon={<SaveIcon />}
-              onClick={handleConfirm}
+              onClick={handleSaveChanges}
               sx={{
                 borderRadius: 2,
                 px: 3,
@@ -312,7 +355,27 @@ const AddUser: React.FC = () => {
                 textTransform: "none",
               }}
             >
-              Agregar Usuario
+              Guardar Cambios
+            </Button>
+
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={handleDeleteUser}
+              sx={{
+                borderRadius: 2,
+                padding: "10px 20px",
+                fontWeight: "bold",
+                borderColor: "#d32f2f",
+                "&:hover": {
+                  borderColor: "#b71c1c",
+                  backgroundColor: "#ffebee",
+                },
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              Eliminar Usuario
             </Button>
 
             <Button
@@ -353,4 +416,4 @@ const AddUser: React.FC = () => {
   );
 };
 
-export default AddUser;
+export default EditUserPage;

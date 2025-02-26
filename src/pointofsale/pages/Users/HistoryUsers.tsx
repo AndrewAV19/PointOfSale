@@ -11,12 +11,13 @@ import {
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
 
-//import { users as initialUsers } from "../../mocks/historyUsersMock";
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 import { storeUsers } from "../../../stores/users.store";
+import { dataStore } from "../../../stores/generalData.store";
 
 export default function HistoryUsers() {
   const { listUsers, getUsers, deleteUser } = storeUsers();
+  const { getUserById } = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const [users, setUsers] = useState(listUsers);
@@ -30,8 +31,6 @@ export default function HistoryUsers() {
   useEffect(() => {
     setUsers(listUsers);
   }, [listUsers]);
-
-
 
   const filteredVentas = users.filter((venta) =>
     venta?.name?.toLowerCase().includes(search.toLowerCase())
@@ -119,10 +118,14 @@ export default function HistoryUsers() {
                       variant="outlined"
                       startIcon={<Visibility />}
                       size="small"
-                      onClick={() => navigate(`/ventas/editar`)}
+                      onClick={async () => {
+                        await getUserById(user.id);
+                        navigate(`/usuarios/editar`);
+                      }}
                     >
                       Ver
                     </Button>
+
                     <Button
                       variant="outlined"
                       color="error"

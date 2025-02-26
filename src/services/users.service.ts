@@ -17,19 +17,23 @@ export class UsersService {
     }
   };
 
-  // static readonly getCellById = async (id: number): Promise<Cell> => {
-  //   try {
-  //     const response = await api.get<Cell>(
-  //       `/evaluaciti/api/celulas/${id}`
-  //     );
-  //     console.log(response);
+  static readonly getUserById = async (id: number): Promise<Users> => {
+    try {
+      const response = await api.get<Users>(
+        `/users/${id}`,{
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        }
+        });
+      console.log(response);
 
-  //     return response.data.data;
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw new Error("Error al obtener la célula");
-  //   }
-  // };
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error al obtener el usuario");
+    }
+  };
 
   static readonly createUser = async (dataSend: {
     name: string;

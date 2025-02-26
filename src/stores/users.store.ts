@@ -6,6 +6,7 @@ import { UsersService } from "../services/users.service";
 interface UsersState {
   listUsers: Users[];
   loading: boolean;
+
   getUsers: () => Promise<void>;
 
   createUser: (dataSend: {
@@ -26,6 +27,7 @@ interface UsersState {
 
 const usersStore: StateCreator<UsersState> = (set, get) => ({
   listUsers: [],
+  selectedUser: null,
   loading: false,
 
   getUsers: async () => {
@@ -43,7 +45,7 @@ const usersStore: StateCreator<UsersState> = (set, get) => ({
     try {
       set({ loading: true });
       const data = await UsersService.createUser(dataSend);
-      set({ listUsers: data, loading: false });
+
       return data;
     } catch (error) {
       console.log(error);
