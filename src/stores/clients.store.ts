@@ -21,9 +21,11 @@ interface ClientsState {
     createdAt: Date;
     updatedAt: Date;
   }) => Promise<Clients[]>;
+
+  deleteClient: (id: number) => Promise<void>;
 }
 
-const clientsStore: StateCreator<ClientsState> = (set) => ({
+const clientsStore: StateCreator<ClientsState> = (set, get) => ({
   listClients: [],
   loading: false,
 
@@ -42,7 +44,6 @@ const clientsStore: StateCreator<ClientsState> = (set) => ({
     try {
       set({ loading: true });
       const data = await ClientsService.createClient(dataSend);
-      set({ listClients: data, loading: false });
       return data;
     } catch (error) {
       console.log(error);
@@ -51,6 +52,19 @@ const clientsStore: StateCreator<ClientsState> = (set) => ({
       throw new Error("Error al crear la célula");
     }
   },
+
+  deleteClient: async (id: number) => {
+      try {
+        set({ loading: true });
+        await ClientsService.deleteClient(id);
+        const updatedClients = get().listClients.filter(client => client.id !== id);
+        set({ listClients: updatedClients, loading: false });
+      } catch (error) {
+        console.error(error);
+        set({ loading: false });
+        throw new Error("Error al eliminar el cliente");
+      }
+    },
 });
 
 export const storeClients = create<ClientsState>()(

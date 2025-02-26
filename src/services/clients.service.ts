@@ -2,29 +2,21 @@ import api from "../lib/axios";
 import { Clients } from "../pointofsale/interfaces/clients.interface";
 
 export class ClientsService {
+
   static readonly getClients = async (): Promise<Clients[]> => {
     try {
-      const response = await api.get<Clients[]>("/clients");
+      const response = await api.get<Clients[]>("/clients", {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('token')
+      }
+      });
       console.log(response);
       return response.data;
     } catch (error) {
       throw new Error("UnAuthorized");
     }
   };
-
-  // static readonly getCellById = async (id: number): Promise<Cell> => {
-  //   try {
-  //     const response = await api.get<Cell>(
-  //       `/evaluaciti/api/celulas/${id}`
-  //     );
-  //     console.log(response);
-
-  //     return response.data.data;
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw new Error("Error al obtener la célula");
-  //   }
-  // };
 
   static readonly createClient = async (dataSend: {
     id: number;
@@ -40,7 +32,12 @@ export class ClientsService {
     updatedAt: Date;
   }): Promise<Clients[]> => {
     try {
-      const response = await api.post<Clients[]>("/clients", dataSend);
+      const response = await api.post<Clients[]>("/clients", dataSend,{
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('token')
+      }
+      });
       console.log(response.data);
       return response.data;
     } catch (error) {
@@ -49,14 +46,19 @@ export class ClientsService {
     }
   };
 
-  // static readonly deleteCell = async (id: number): Promise<Cell[]> => {
-  //   try {
-  //     const { data } = await backOfficeApi.delete<Cell[]>(
-  //       `/api-backoffice-Cells/Cells/delete-by-id/${id}`
-  //     );
-  //     return data;
-  //   } catch (error) {
-  //     throw new Error("UnAuthorized");
-  //   }
-  // };
+  static readonly deleteClient = async (id: number): Promise<void> => {
+    try {
+      await api.delete(`/clients/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      console.log(`Client with id ${id} deleted successfully`);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error al eliminar el cliente");
+    }
+  };
+
 }
