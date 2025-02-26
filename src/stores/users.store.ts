@@ -22,6 +22,22 @@ interface UsersState {
     roleIds: number[];  
   }) => Promise<Users[]>;
 
+  updateUser: (
+    id: number,
+    dataSend: {
+      name: string;
+      email: string;
+      password?: string;
+      phone: string;
+      address: string;
+      city: string;
+      state: string;
+      zipCode: number;
+      country: string;
+      roleIds: number[];
+    }
+  ) => Promise<Users>;
+
   deleteUser: (id: number) => Promise<void>;
 }
 
@@ -52,6 +68,24 @@ const usersStore: StateCreator<UsersState> = (set, get) => ({
 
       set({ loading: false });
       throw new Error("Error al crear el usuario");
+    }
+  },
+
+  updateUser: async (id, dataSend) => {
+    try {
+      set({ loading: true });
+      const updatedUser = await UsersService.updateUser(id, dataSend);
+      
+      const updatedUsers = get().listUsers.map(user =>
+        user.id === id ? updatedUser : user
+      );
+
+      set({ listUsers: updatedUsers, loading: false });
+      return updatedUser;
+    } catch (error) {
+      console.error(error);
+      set({ loading: false });
+      throw new Error("Error al actualizar el usuario");
     }
   },
 

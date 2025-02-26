@@ -57,7 +57,9 @@ const EditUserPage: React.FC = () => {
     "success"
   );
   const [messageSnackbar, setMessageSnackbar] = useState("");
+
   console.log(rolesSeleccionados);
+  console.log(selectedUser);
 
   useEffect(() => {
     const roleIds = selectedUser?.roles.map((role) => role.id);
@@ -106,47 +108,50 @@ const EditUserPage: React.FC = () => {
   };
 
   const handleSaveChanges = async () => {
-    if (!user.name || !user.email || !user.phone || !currentPassword || !newPassword) {
+    if (
+      !user.name ||
+      !user.email 
+    ) {
       setSnackbarSeverity("error");
       setMessageSnackbar("Por favor, completa todos los campos obligatorios.");
       setOpenSnackbar(true);
       return;
     }
-  
+
     if (!/\S+@\S+\.\S+/.test(user.email)) {
       setSnackbarSeverity("error");
       setMessageSnackbar("Correo electrónico no válido.");
       setOpenSnackbar(true);
       return;
     }
-  
+
     // Verificar si la contraseña actual coincide con la almacenada
-    if (currentPassword !== selectedUser?.password) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("La contraseña actual es incorrecta.");
-      setOpenSnackbar(true);
-      return;
-    }
-  
+    // if (currentPassword !== selectedUser?.password) {
+    //   setSnackbarSeverity("error");
+    //   setMessageSnackbar("La contraseña actual es incorrecta.");
+    //   setOpenSnackbar(true);
+    //   return;
+    // }
+
     try {
       // Actualizar el usuario con la nueva contraseña
-    //   await storeUsers.getState().updateUser(selectedUser?.id, {
-    //     name: user.name,
-    //     email: user.email,
-    //     password: newPassword, // Actualizar con la nueva contraseña
-    //     phone: user.phone,
-    //     address: user.address,
-    //     city: user.city,
-    //     state: user.state,
-    //     zipCode: user.zipCode,
-    //     country: user.country,
-    //     roleIds: rolesSeleccionados,
-    //   });
-  
+      await storeUsers.getState().updateUser(selectedUser?.id ?? 0, {
+        name: user.name,
+        email: user.email,
+        password: newPassword, 
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        state: user.state,
+        zipCode: user.zipCode,
+        country: user.country,
+        roleIds: rolesSeleccionados,
+      });
+
       setSnackbarSeverity("success");
       setMessageSnackbar("Usuario actualizado correctamente.");
       setOpenSnackbar(true);
-  
+
       // Limpiar campos de contraseña
       setCurrentPassword("");
       setNewPassword("");
@@ -239,7 +244,7 @@ const EditUserPage: React.FC = () => {
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               variant="outlined"
-              required
+         
               slotProps={{
                 input: {
                   endAdornment: (
@@ -266,7 +271,7 @@ const EditUserPage: React.FC = () => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               variant="outlined"
-              required
+           
               slotProps={{
                 input: {
                   endAdornment: (

@@ -63,6 +63,37 @@ export class UsersService {
     }
   };
 
+  static readonly updateUser = async (
+    id: number,
+    dataSend: {
+      name: string;
+      email: string;
+      password?: string;
+      phone: string;
+      address: string;
+      city: string;
+      state: string;
+      zipCode: number;
+      country: string;
+      roleIds: number[];
+    }
+  ): Promise<Users> => {
+    try {
+      const response = await api.put<Users>(`/users/${id}`, dataSend, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      throw new Error("Error al actualizar el usuario");
+    }
+  };
+
   static readonly deleteUser = async (id: number): Promise<void> => {
     try {
       await api.delete(`/users/${id}`, {
