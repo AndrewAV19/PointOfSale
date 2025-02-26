@@ -28,6 +28,7 @@ import { UserRequest } from "../../interfaces/users.interface";
 import { storeUsers } from "../../../stores/users.store";
 import { dataStore } from "../../../stores/generalData.store";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
 const EditUserPage: React.FC = () => {
   const initialUserState: UserRequest = {
@@ -45,10 +46,13 @@ const EditUserPage: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserRequest>(initialUserState);
   const [showPassword, setShowPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [rolesSeleccionados, setRolesSeleccionados] = useState<number[]>([]);
   const { selectedUser } = dataStore();
   const { deleteUser } = storeUsers();
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
     "success"
   );
@@ -61,7 +65,7 @@ const EditUserPage: React.FC = () => {
       setUser({
         name: selectedUser.name,
         email: selectedUser.email,
-        //password: selectedUser.password,
+        password: selectedUser.password,
         phone: selectedUser.phone,
         address: selectedUser.address,
         city: selectedUser.city,
@@ -102,24 +106,34 @@ const EditUserPage: React.FC = () => {
   };
 
   const handleSaveChanges = async () => {
-    if (!user.name || !user.email || !user.phone || !user.password) {
+    if (!user.name || !user.email || !user.phone || !currentPassword || !newPassword) {
       setSnackbarSeverity("error");
       setMessageSnackbar("Por favor, completa todos los campos obligatorios.");
       setOpenSnackbar(true);
       return;
     }
+  
     if (!/\S+@\S+\.\S+/.test(user.email)) {
       setSnackbarSeverity("error");
       setMessageSnackbar("Correo electrónico no válido.");
       setOpenSnackbar(true);
+      return;
     }
-
-    // try {
-    //   // Llama a la función updateUser del store
+  
+    // Verificar si la contraseña actual coincide con la almacenada
+    if (currentPassword !== selectedUser?.password) {
+      setSnackbarSeverity("error");
+      setMessageSnackbar("La contraseña actual es incorrecta.");
+      setOpenSnackbar(true);
+      return;
+    }
+  
+    try {
+      // Actualizar el usuario con la nueva contraseña
     //   await storeUsers.getState().updateUser(selectedUser?.id, {
     //     name: user.name,
     //     email: user.email,
-    //     password: user.password,
+    //     password: newPassword, // Actualizar con la nueva contraseña
     //     phone: user.phone,
     //     address: user.address,
     //     city: user.city,
@@ -128,29 +142,37 @@ const EditUserPage: React.FC = () => {
     //     country: user.country,
     //     roleIds: rolesSeleccionados,
     //   });
-
-    //   setSnackbarSeverity("success");
-    //   setMessageSnackbar("Usuario actualizado correctamente.");
-    //   setOpenSnackbar(true);
-    // } catch (error) {
-    //   setSnackbarSeverity("error");
-    //   setMessageSnackbar("Error al actualizar el usuario.");
-    //   setOpenSnackbar(true);
-    // }
+  
+      setSnackbarSeverity("success");
+      setMessageSnackbar("Usuario actualizado correctamente.");
+      setOpenSnackbar(true);
+  
+      // Limpiar campos de contraseña
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (error) {
+      setSnackbarSeverity("error");
+      setMessageSnackbar("Error al actualizar el usuario.");
+      setOpenSnackbar(true);
+    }
   };
 
-  const handleDeleteUser = async () => {
+  const handleDeleteClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
     try {
       await deleteUser(selectedUser?.id ?? 0);
+      navigate(`/usuarios/historial`);
     } catch (error) {
       console.error("Error al eliminar el usuario:", error);
     }
   };
 
   const handleGoBack = () => {
-    navigate(-1); 
+    navigate(-1);
   };
-
 
   return (
     <Container sx={{ py: 4 }}>
@@ -211,11 +233,38 @@ const EditUserPage: React.FC = () => {
           <Box sx={{ mb: 2 }}>
             <TextField
               fullWidth
-              label="Contraseña"
-              name="password"
+              label="Contraseña Actual"
+              name="currentPassword"
               type={showPassword ? "text" : "password"}
-              value={user.password}
-              onChange={handleChange}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              variant="outlined"
+              required
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <TextField
+              fullWidth
+              label="Nueva Contraseña"
+              name="newPassword"
+              type={showPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               variant="outlined"
               required
               slotProps={{
@@ -362,7 +411,7 @@ const EditUserPage: React.FC = () => {
               variant="outlined"
               color="error"
               startIcon={<DeleteIcon />}
-              onClick={handleDeleteUser}
+              onClick={() => handleDeleteClick()}
               sx={{
                 borderRadius: 2,
                 padding: "10px 20px",
@@ -412,6 +461,15 @@ const EditUserPage: React.FC = () => {
           {messageSnackbar}
         </Alert>
       </Snackbar>
+
+      {/* Modal de Confirmación */}
+      <ConfirmDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Eliminación"
+        message="¿Estás seguro de que deseas eliminar este usuario?"
+      />
     </Container>
   );
 };
