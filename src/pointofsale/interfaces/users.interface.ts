@@ -15,6 +15,7 @@ export interface Users {
   zipCode: number;
   country: string;
   roles: Role[];
+  roleIds?: number[];  
   enabled: boolean;
 }
 

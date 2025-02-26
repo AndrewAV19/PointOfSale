@@ -24,7 +24,7 @@ import {
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
-import { UserRequest } from "../../interfaces/users.interface";
+import { UserRequest, Users } from "../../interfaces/users.interface";
 import { storeUsers } from "../../../stores/users.store";
 import { dataStore } from "../../../stores/generalData.store";
 import { useNavigate } from "react-router-dom";
@@ -43,14 +43,30 @@ const EditUserPage: React.FC = () => {
     country: "",
     roleIds: [],
   };
+  const convertToUserRequest = (selectedUser: Users): UserRequest => {
+    return {
+      name: selectedUser.name,
+      email: selectedUser.email,
+      password: selectedUser.password ?? "",
+      phone: selectedUser.phone,
+      address: selectedUser.address,
+      city: selectedUser.city,
+      state: selectedUser.state,
+      zipCode: selectedUser.zipCode,
+      country: selectedUser.country,
+      roleIds: selectedUser.roles.map((role) => role.id),
+    };
+  };
   const navigate = useNavigate();
-  const [user, setUser] = useState<UserRequest>(initialUserState);
   const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [rolesSeleccionados, setRolesSeleccionados] = useState<number[]>([]);
   const { selectedUser } = dataStore();
   const { deleteUser } = storeUsers();
+  const [user, setUser] = useState<UserRequest>(
+    selectedUser ? convertToUserRequest(selectedUser) : initialUserState
+  );
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
@@ -60,6 +76,13 @@ const EditUserPage: React.FC = () => {
 
   console.log(rolesSeleccionados);
   console.log(selectedUser);
+
+  useEffect(() => {
+    if (selectedUser) {
+      const userRequest = convertToUserRequest(selectedUser);
+      setUser(userRequest);
+    }
+  }, [selectedUser]);
 
   useEffect(() => {
     const roleIds = selectedUser?.roles.map((role) => role.id);
@@ -108,10 +131,7 @@ const EditUserPage: React.FC = () => {
   };
 
   const handleSaveChanges = async () => {
-    if (
-      !user.name ||
-      !user.email 
-    ) {
+    if (!user.name || !user.email) {
       setSnackbarSeverity("error");
       setMessageSnackbar("Por favor, completa todos los campos obligatorios.");
       setOpenSnackbar(true);
@@ -138,7 +158,7 @@ const EditUserPage: React.FC = () => {
       await storeUsers.getState().updateUser(selectedUser?.id ?? 0, {
         name: user.name,
         email: user.email,
-        password: newPassword, 
+        password: newPassword,
         phone: user.phone,
         address: user.address,
         city: user.city,
@@ -244,7 +264,6 @@ const EditUserPage: React.FC = () => {
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               variant="outlined"
-         
               slotProps={{
                 input: {
                   endAdornment: (
@@ -271,7 +290,6 @@ const EditUserPage: React.FC = () => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               variant="outlined"
-           
               slotProps={{
                 input: {
                   endAdornment: (
