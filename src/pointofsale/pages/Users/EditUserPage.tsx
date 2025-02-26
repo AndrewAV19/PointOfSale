@@ -69,13 +69,13 @@ const EditUserPage: React.FC = () => {
   );
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
-    "success"
-  );
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "info"
+  >("success");
   const [messageSnackbar, setMessageSnackbar] = useState("");
 
-  console.log(rolesSeleccionados);
-  console.log(selectedUser);
+  console.log("Roles seleccionados: ", rolesSeleccionados);
+  console.log("Usuario seleccionado: ", selectedUser);
 
   useEffect(() => {
     if (selectedUser) {
@@ -131,55 +131,108 @@ const EditUserPage: React.FC = () => {
   };
 
   const handleSaveChanges = async () => {
-    if (!user.name || !user.email) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Por favor, completa todos los campos obligatorios.");
-      setOpenSnackbar(true);
+    // Validar campos obligatorios
+    if (!validateRequiredFields(user)) {
+      showSnackbar(
+        "error",
+        "Por favor, completa todos los campos obligatorios."
+      );
       return;
     }
 
-    if (!/\S+@\S+\.\S+/.test(user.email)) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Correo electrónico no válido.");
-      setOpenSnackbar(true);
+    // Validar formato de correo electrónico
+    if (!validateEmail(user.email)) {
+      showSnackbar("error", "Correo electrónico no válido.");
       return;
     }
-
-    // Verificar si la contraseña actual coincide con la almacenada
-    // if (currentPassword !== selectedUser?.password) {
-    //   setSnackbarSeverity("error");
-    //   setMessageSnackbar("La contraseña actual es incorrecta.");
-    //   setOpenSnackbar(true);
-    //   return;
-    // }
 
     try {
-      // Actualizar el usuario con la nueva contraseña
-      await storeUsers.getState().updateUser(selectedUser?.id ?? 0, {
-        name: user.name,
-        email: user.email,
-        password: newPassword,
-        phone: user.phone,
-        address: user.address,
-        city: user.city,
-        state: user.state,
-        zipCode: user.zipCode,
-        country: user.country,
-        roleIds: rolesSeleccionados,
-      });
+      // Obtener los valores originales del usuario seleccionado
+      const originalUser = selectedUser
+        ? convertToUserRequest(selectedUser)
+        : null;
 
-      setSnackbarSeverity("success");
-      setMessageSnackbar("Usuario actualizado correctamente.");
-      setOpenSnackbar(true);
+      const updatedFields = originalUser
+        ? getUpdatedFields(user, originalUser, newPassword, rolesSeleccionados)
+        : {};
 
-      // Limpiar campos de contraseña
-      setCurrentPassword("");
-      setNewPassword("");
+      const finalUpdateFields = {
+        name: updatedFields.name ?? user.name,
+        email: updatedFields.email ?? user.email,
+        password: updatedFields.password,
+        phone: updatedFields.phone ?? user.phone,
+        address: updatedFields.address ?? user.address,
+        city: updatedFields.city ?? user.city,
+        state: updatedFields.state ?? user.state,
+        zipCode: updatedFields.zipCode ?? user.zipCode,
+        country: updatedFields.country ?? user.country,
+        roleIds: updatedFields.roleIds ?? user.roleIds,
+      };
+
+      // Enviar la solicitud
+      await storeUsers
+        .getState()
+        .updateUser(selectedUser?.id ?? 0, finalUpdateFields);
+
+      showSnackbar("success", "Usuario actualizado correctamente.");
+
+      clearPasswordFields();
     } catch (error) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Error al actualizar el usuario.");
-      setOpenSnackbar(true);
+      showSnackbar("error", "Error al actualizar el usuario.");
     }
+  };
+
+  const validateRequiredFields = (user: UserRequest): boolean => {
+    return !!user.name && !!user.email;
+  };
+
+  const validateEmail = (email: string): boolean => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  const showSnackbar = (
+    severity: "error" | "success",
+    message: string
+  ): void => {
+    setSnackbarSeverity(severity);
+    setMessageSnackbar(message);
+    setOpenSnackbar(true);
+  };
+
+  const getUpdatedFields = (
+    user: UserRequest,
+    originalUser: UserRequest,
+    newPassword: string,
+    rolesSeleccionados: number[]
+  ): Partial<UserRequest> => {
+    const updatedFields: Partial<UserRequest> = {};
+
+    if (user.name !== originalUser.name) updatedFields.name = user.name;
+    if (user.email !== originalUser.email) updatedFields.email = user.email;
+    if (newPassword && newPassword !== originalUser.password)
+      updatedFields.password = newPassword;
+    if (user.phone !== originalUser.phone) updatedFields.phone = user.phone;
+    if (user.address !== originalUser.address)
+      updatedFields.address = user.address;
+    if (user.city !== originalUser.city) updatedFields.city = user.city;
+    if (user.state !== originalUser.state) updatedFields.state = user.state;
+    if (user.zipCode !== originalUser.zipCode)
+      updatedFields.zipCode = user.zipCode;
+    if (user.country !== originalUser.country)
+      updatedFields.country = user.country;
+    if (
+      JSON.stringify(rolesSeleccionados) !==
+      JSON.stringify(originalUser.roleIds)
+    ) {
+      updatedFields.roleIds = rolesSeleccionados;
+    }
+
+    return updatedFields;
+  };
+
+  const clearPasswordFields = (): void => {
+    setCurrentPassword("");
+    setNewPassword("");
   };
 
   const handleDeleteClick = () => {
