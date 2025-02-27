@@ -1,10 +1,10 @@
 import api from "../lib/axios";
-import { Clients } from "../pointofsale/interfaces/clients.interface";
+import { Supplier } from "../pointofsale/interfaces/supplier.interface";
 
-export class ClientsService {
-  static readonly getClients = async (): Promise<Clients[]> => {
+export class SuppliersService {
+  static readonly getSuppliers = async (): Promise<Supplier[]> => {
     try {
-      const response = await api.get<Clients[]>("/clients", {
+      const response = await api.get<Supplier[]>("/suppliers", {
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("token"),
@@ -17,9 +17,9 @@ export class ClientsService {
     }
   };
 
-  static readonly getClientById = async (id: number): Promise<Clients> => {
+  static readonly getSupplierById = async (id: number): Promise<Supplier> => {
     try {
-      const response = await api.get<Clients>(`/clients/${id}`, {
+      const response = await api.get<Supplier>(`/suppliers/${id}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("token"),
@@ -30,22 +30,25 @@ export class ClientsService {
       return response.data;
     } catch (error) {
       console.error(error);
-      throw new Error("Error al obtener el cliente");
+      throw new Error("Error al obtener el proveedor");
     }
   };
 
-  static readonly createClient = async (dataSend: {
+  static readonly createSupplier = async (dataSend: {
     name: string;
+    contactName?: string;
     email: string;
-    phone: string;
+    phone?: string;
     address?: string;
     city?: string;
     state?: string;
     zipCode?: number;
     country?: string;
-  }): Promise<Clients[]> => {
+    taxId?: string;
+    website?: string;
+  }): Promise<Supplier[]> => {
     try {
-      const response = await api.post<Clients[]>("/clients", dataSend, {
+      const response = await api.post<Supplier[]>("/suppliers", dataSend, {
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("token"),
@@ -59,32 +62,36 @@ export class ClientsService {
     }
   };
 
-  static readonly updateClient = async (
+  static readonly updateSupplier = async (
     id: number,
     dataSend: {
-      name?: string;
-      email?: string;
-      phone?: string;
-      address?: string;
-      city?: string;
-      state?: string;
-      zipCode?: number;
-      country?: string;
+      name: string;
+      contactName: string;
+      email: string;
+      phone: string;
+      address: string;
+      city: string;
+      state: string;
+      zipCode: number;
+      country: string;
+      taxId: string;
+      website: string;
     }
-  ): Promise<Clients> => {
+  ): Promise<Supplier> => {
     try {
-      const currentUser = await ClientsService.getClientById(id);
+      const currentUser = await SuppliersService.getSupplierById(id);
 
       // Crear un objeto con solo los campos que han cambiado
-      const updatedFields: Partial<Clients> = {};
+      const updatedFields: Partial<Supplier> = {};
 
       // Definir los campos a verificar
       const fieldsToCheck: {
-        key: keyof Clients;
+        key: keyof Supplier;
         value: any;
         compare?: (a: any, b: any) => boolean;
       }[] = [
         { key: "name", value: dataSend.name },
+        { key: "contactName", value: dataSend.contactName },
         { key: "email", value: dataSend.email },
         { key: "phone", value: dataSend.phone },
         { key: "address", value: dataSend.address },
@@ -92,6 +99,8 @@ export class ClientsService {
         { key: "state", value: dataSend.state },
         { key: "zipCode", value: dataSend.zipCode },
         { key: "country", value: dataSend.country },
+        { key: "taxId", value: dataSend.taxId },
+        { key: "website", value: dataSend.website },
       ];
 
       // Verificar y actualizar los campos
@@ -108,8 +117,8 @@ export class ClientsService {
 
       // Solo enviar la solicitud si hay campos actualizados
       if (Object.keys(updatedFields).length > 0) {
-        const response = await api.put<Clients>(
-          `/clients/${id}`,
+        const response = await api.put<Supplier>(
+          `/suppliers/${id}`,
           updatedFields,
           {
             headers: {
@@ -127,22 +136,22 @@ export class ClientsService {
       }
     } catch (error) {
       console.log(error);
-      throw new Error("Error al actualizar el cliente");
+      throw new Error("Error al actualizar el proveedor");
     }
   };
 
-  static readonly deleteClient = async (id: number): Promise<void> => {
+  static readonly deleteSupplier = async (id: number): Promise<void> => {
     try {
-      await api.delete(`/clients/${id}`, {
+      await api.delete(`/suppliers/${id}`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
-      console.log(`Client with id ${id} deleted successfully`);
+      console.log(`Supplier with id ${id} deleted successfully`);
     } catch (error) {
       console.error(error);
-      throw new Error("Error al eliminar el cliente");
+      throw new Error("Error al eliminar el proveedor");
     }
   };
 }

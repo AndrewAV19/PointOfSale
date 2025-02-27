@@ -12,11 +12,11 @@ interface ClientsState {
     name: string;
     email: string;
     phone: string;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: number;
-    country: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: number;
+    country?: string;
   }) => Promise<Clients[]>;
 
   updateClient: (

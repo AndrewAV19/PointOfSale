@@ -36,7 +36,7 @@ const AddClient: React.FC = () => {
   };
 
   const { form: client, handleChange, resetForm } = useForm(initialClientState);
-
+  const requiredFields = ["name", "email", "phone"];
   const { validateRequiredFields, validateEmail } = useValidation();
 
   const {
@@ -52,7 +52,7 @@ const AddClient: React.FC = () => {
   }, []);
 
   const handleConfirm = async () => {
-    if (!validateRequiredFields(client)) {
+    if (!validateRequiredFields(client, requiredFields)) {
       showSnackbar("error", "Por favor, completa los campos obligatorios.");
       return;
     }

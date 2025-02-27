@@ -96,7 +96,7 @@ const EditUserPage: React.FC = () => {
   console.log(setRolesSeleccionados)
 
   const handleSaveChanges = async () => {
-    if (!validateRequiredFields(user)) {
+    if (!validateRequiredFields(user,[])) {
       showSnackbar(
         "error",
         "Por favor, completa todos los campos obligatorios."

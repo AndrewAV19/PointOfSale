@@ -81,7 +81,7 @@ const EditClientPage: React.FC = () => {
   }, [selectedClient]);
 
   const handleSaveChanges = async () => {
-    if (!validateRequiredFields(client)) {
+    if (!validateRequiredFields(client,[])) {
       showSnackbar(
         "error",
         "Por favor, completa todos los campos obligatorios."

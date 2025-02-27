@@ -39,11 +39,11 @@ export class UsersService {
     email: string;
     password: string;
     phone: string;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: number;
-    country: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: number;
+    country?: string;
     roleIds: number[];
   }): Promise<Users[]> => {
     try {

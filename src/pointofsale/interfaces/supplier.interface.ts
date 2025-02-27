@@ -1,6 +1,7 @@
 export interface Supplier {
-    id: number;
+    id?: number;
     name: string;
+    contactName?: string;
     email?: string;
     phone?: string;
     address?: string;
@@ -8,7 +9,7 @@ export interface Supplier {
     state?: string;
     zipCode?: number;
     country?: string;
-    taxId?: string; // Número de identificación fiscal
+    taxId?: string; 
     website?: string;
   }
   

@@ -43,7 +43,7 @@ const AddUser: React.FC = () => {
   };
 
   const { form: user, handleChange, resetForm } = useForm(initialUserState);
-
+  const requiredFields = ["name", "email", "phone", "password", "roleIds"];
   const { validateRequiredFields, validateEmail } = useValidation();
 
   const {
@@ -64,7 +64,7 @@ const AddUser: React.FC = () => {
 
   const handleConfirm = async () => {
     // Validar campos obligatorios
-    if (!validateRequiredFields(user)) {
+    if (!validateRequiredFields(user, requiredFields)) {
       showSnackbar(
         "error",
         "Por favor, completa todos los campos obligatorios."
