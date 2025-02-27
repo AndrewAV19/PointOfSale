@@ -12,7 +12,7 @@ interface SuppliersState {
     name: string;
     contactName?: string;
     email: string;
-    phone?: string;
+    phone: string;
     address?: string;
     city?: string;
     state?: string;

@@ -38,7 +38,7 @@ export class SuppliersService {
     name: string;
     contactName?: string;
     email: string;
-    phone?: string;
+    phone: string;
     address?: string;
     city?: string;
     state?: string;
