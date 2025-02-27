@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   TextField,
   Button,
@@ -17,11 +17,13 @@ import {
   Phone as PhoneIcon,
   LocationOn as LocationOnIcon,
 } from "@mui/icons-material";
-import {  Clients } from "../../interfaces/clients.interface";
+import { Clients } from "../../interfaces/clients.interface";
 import { storeClients } from "../../../stores/clients.store";
+import { useForm } from "../../../hooks/useForm";
+import { useValidation } from "../../../hooks/useValidation";
+import { useSnackbar } from "../../../hooks/useSnackbar";
 
 const AddClient: React.FC = () => {
-
   const initialClientState: Clients = {
     name: "",
     email: "",
@@ -33,76 +35,50 @@ const AddClient: React.FC = () => {
     country: "",
   };
 
-  const [client, setClient] = useState<Clients>(initialClientState);
+  const { form: client, handleChange, resetForm } = useForm(initialClientState);
 
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
-    "success"
-  );
-  const [messageSnackbar, setMessageSnackbar] = useState("");
+  const { validateRequiredFields, validateEmail } = useValidation();
 
-    useEffect(() => {
-      setClient(initialClientState); 
-    }, []);
-  
+  const {
+    openSnackbar,
+    snackbarSeverity,
+    messageSnackbar,
+    showSnackbar,
+    closeSnackbar,
+  } = useSnackbar();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (name === "zipCode") {
-      const numericValue = value.replace(/\D/g, "");
-      setClient((prevClient) => ({
-        ...prevClient,
-        [name]: numericValue ? parseInt(numericValue, 10) : 0,
-      }));
-    } else {
-      setClient((prevClient) => ({
-        ...prevClient,
-        [name]: value,
-      }));
-    }
-  };
-
-  const handleReset = () => {
-    setClient(initialClientState);
-  };
+  useEffect(() => {
+    resetForm(); 
+  }, []);
 
   const handleConfirm = async () => {
-    if (!client.name || !client.email || !client.phone) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Por favor, completa los campos obligatorios.");
-      setOpenSnackbar(true);
+    if (!validateRequiredFields(client)) {
+      showSnackbar("error", "Por favor, completa los campos obligatorios.");
       return;
     }
-    if (!/\S+@\S+\.\S+/.test(client.email)) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Correo electrónico no válido.");
-      setOpenSnackbar(true);
+
+    if (!validateEmail(client.email)) {
+      showSnackbar("error", "Correo electrónico no válido.");
       return;
     }
 
     try {
-          // Llama a la función createClient del store
-          await storeClients.getState().createClient({
-            name: client.name,
-            email: client.email,
-            phone: client.phone,
-            address: client.address,
-            city: client.city,
-            state: client.state,
-            zipCode: client.zipCode,
-            country: client.country
-          });
-    
-          setSnackbarSeverity("success");
-          setMessageSnackbar("Cliente agregado correctamente.");
-          setOpenSnackbar(true);
-          handleReset();
-        } catch (error) {
-          setSnackbarSeverity("error");
-          setMessageSnackbar("Error al crear el Cliente.");
-          setOpenSnackbar(true);
-        }
+      await storeClients.getState().createClient({
+        name: client.name,
+        email: client.email,
+        phone: client.phone,
+        address: client.address,
+        city: client.city,
+        state: client.state,
+        zipCode: client.zipCode,
+        country: client.country,
+      });
+
+      showSnackbar("success", "Cliente agregado correctamente.");
+      resetForm(); 
+    } catch (error) {
+      showSnackbar("error", "Error al crear el cliente.");
+    }
   };
 
   return (
@@ -220,7 +196,6 @@ const AddClient: React.FC = () => {
               onChange={handleChange}
               variant="outlined"
             />
-
             <TextField
               fullWidth
               label="País"
@@ -252,7 +227,7 @@ const AddClient: React.FC = () => {
               variant="outlined"
               color="error"
               startIcon={<ClearIcon />}
-              onClick={handleReset}
+              onClick={resetForm}
               sx={{
                 borderRadius: 2,
                 padding: "10px 20px",
@@ -275,7 +250,7 @@ const AddClient: React.FC = () => {
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
+        onClose={closeSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert severity={snackbarSeverity} sx={{ width: "100%" }}>

@@ -24,10 +24,13 @@ import { storeClients } from "../../../stores/clients.store";
 import { useNavigate } from "react-router";
 import { dataStore } from "../../../stores/generalData.store";
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
+import { useForm } from "../../../hooks/useForm";
+import { useValidation } from "../../../hooks/useValidation";
+import { useSnackbar } from "../../../hooks/useSnackbar";
+
 
 const EditClientPage: React.FC = () => {
   const initialClientState: Clients = {
-    id: 0,
     name: "",
     email: "",
     phone: "",
@@ -37,24 +40,9 @@ const EditClientPage: React.FC = () => {
     zipCode: 0,
     country: "",
   };
-  const navigate = useNavigate();
-  const { selectedClient } = dataStore();
-  const { deleteClient } = storeClients();
-  const [client, setClient] = useState<Clients>(initialClientState);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<
-    "success" | "error" | "info"
-  >("success");
-  const [messageSnackbar, setMessageSnackbar] = useState("");
 
-  useEffect(() => {
-    setClient(initialClientState);
-  }, []);
-
-  useEffect(() => {
-    if (selectedClient) {
-      setClient({
+   const convertToClientRequest = (selectedClient: Clients): Clients => {
+      return {
         name: selectedClient.name,
         email: selectedClient.email,
         phone: selectedClient.phone,
@@ -63,33 +51,36 @@ const EditClientPage: React.FC = () => {
         state: selectedClient.state,
         zipCode: selectedClient.zipCode,
         country: selectedClient.country,
-      });
+      };
+    };
+
+  const navigate = useNavigate();
+  const { selectedClient } = dataStore();
+  const { deleteClient } = storeClients();
+
+  const { form: client, handleChange, resetForm } = useForm(
+    selectedClient ? convertToClientRequest(selectedClient) : initialClientState
+  );
+
+  const { validateRequiredFields, validateEmail } = useValidation();
+
+  const {
+    openSnackbar,
+    snackbarSeverity,
+    messageSnackbar,
+    showSnackbar,
+    closeSnackbar,
+  } = useSnackbar();
+
+  const [openDialog, setOpenDialog] = useState(false);
+
+  useEffect(() => {
+    if (selectedClient) {
+      resetForm();
     }
   }, [selectedClient]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (name === "zipCode") {
-      const numericValue = value.replace(/\D/g, "");
-      setClient((prevClient) => ({
-        ...prevClient,
-        [name]: numericValue ? parseInt(numericValue, 10) : 0,
-      }));
-    } else {
-      setClient((prevClient) => ({
-        ...prevClient,
-        [name]: value,
-      }));
-    }
-  };
-
-  const handleReset = () => {
-    setClient(initialClientState);
-  };
-
   const handleSaveChanges = async () => {
-    // Validar campos obligatorios
     if (!validateRequiredFields(client)) {
       showSnackbar(
         "error",
@@ -97,14 +88,13 @@ const EditClientPage: React.FC = () => {
       );
       return;
     }
-    // Validar formato de correo electrónico
+
     if (!validateEmail(client.email)) {
       showSnackbar("error", "Correo electrónico no válido.");
       return;
     }
 
     try {
-      // Obtener los valores originales del usuario seleccionado
       const originalClient = selectedClient;
 
       const updatedFields = originalClient
@@ -122,7 +112,6 @@ const EditClientPage: React.FC = () => {
         country: updatedFields.country ?? client.country,
       };
 
-      // Enviar la solicitud
       await storeClients
         .getState()
         .updateClient(selectedClient?.id ?? 0, finalUpdateFields);
@@ -131,23 +120,6 @@ const EditClientPage: React.FC = () => {
     } catch (error) {
       showSnackbar("error", "Error al actualizar el cliente.");
     }
-  };
-
-  const validateRequiredFields = (client: Clients): boolean => {
-    return !!client.name && !!client.email;
-  };
-
-  const validateEmail = (email: string): boolean => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
-
-  const showSnackbar = (
-    severity: "error" | "success",
-    message: string
-  ): void => {
-    setSnackbarSeverity(severity);
-    setMessageSnackbar(message);
-    setOpenSnackbar(true);
   };
 
   const getUpdatedFields = (
@@ -316,7 +288,6 @@ const EditClientPage: React.FC = () => {
               onChange={handleChange}
               variant="outlined"
             />
-
             <TextField
               fullWidth
               label="País"
@@ -348,7 +319,7 @@ const EditClientPage: React.FC = () => {
               variant="outlined"
               color="error"
               startIcon={<DeleteIcon />}
-              onClick={() => handleDeleteClick()}
+              onClick={handleDeleteClick}
               sx={{
                 borderRadius: 2,
                 padding: "10px 20px",
@@ -368,7 +339,7 @@ const EditClientPage: React.FC = () => {
               variant="outlined"
               color="error"
               startIcon={<ClearIcon />}
-              onClick={handleReset}
+              onClick={resetForm}
               sx={{
                 borderRadius: 2,
                 padding: "10px 20px",
@@ -391,7 +362,7 @@ const EditClientPage: React.FC = () => {
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
+        onClose={closeSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert severity={snackbarSeverity} sx={{ width: "100%" }}>

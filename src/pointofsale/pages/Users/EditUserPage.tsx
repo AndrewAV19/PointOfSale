@@ -24,11 +24,14 @@ import {
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
-import { UserRequest, Users } from "../../interfaces/users.interface";
+import { UserRequest, Users } from '../../interfaces/users.interface';
 import { storeUsers } from "../../../stores/users.store";
 import { dataStore } from "../../../stores/generalData.store";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
+import { useForm } from "../../../hooks/useForm";
+import { useSnackbar } from "../../../hooks/useSnackbar";
+import { useValidation } from "../../../hooks/useValidation";
 
 const EditUserPage: React.FC = () => {
   const initialUserState: UserRequest = {
@@ -43,6 +46,7 @@ const EditUserPage: React.FC = () => {
     country: "",
     roleIds: [],
   };
+
   const convertToUserRequest = (selectedUser: Users): UserRequest => {
     return {
       name: selectedUser.name,
@@ -57,6 +61,7 @@ const EditUserPage: React.FC = () => {
       roleIds: selectedUser.roles.map((role) => role.id),
     };
   };
+
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -64,74 +69,33 @@ const EditUserPage: React.FC = () => {
   const [rolesSeleccionados, setRolesSeleccionados] = useState<number[]>([]);
   const { selectedUser } = dataStore();
   const { deleteUser } = storeUsers();
-  const [user, setUser] = useState<UserRequest>(
+
+  const { form: user, handleChange, resetForm } = useForm(
     selectedUser ? convertToUserRequest(selectedUser) : initialUserState
   );
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<
-    "success" | "error" | "info"
-  >("success");
-  const [messageSnackbar, setMessageSnackbar] = useState("");
 
-  console.log("Roles seleccionados: ", rolesSeleccionados);
-  console.log("Usuario seleccionado: ", selectedUser);
+  const { validateRequiredFields, validateEmail } = useValidation();
+  const {
+    openSnackbar,
+    snackbarSeverity,
+    messageSnackbar,
+    showSnackbar,
+    closeSnackbar,
+  } = useSnackbar();
+
+  const [openDialog, setOpenDialog] = useState(false);
 
   useEffect(() => {
     if (selectedUser) {
       const userRequest = convertToUserRequest(selectedUser);
-      setUser(userRequest);
+      console.log(userRequest)
+      resetForm();
     }
   }, [selectedUser]);
 
-  useEffect(() => {
-    const roleIds = selectedUser?.roles.map((role) => role.id);
-    if (selectedUser) {
-      setUser({
-        name: selectedUser.name,
-        email: selectedUser.email,
-        password: selectedUser.password,
-        phone: selectedUser.phone,
-        address: selectedUser.address,
-        city: selectedUser.city,
-        state: selectedUser.state,
-        zipCode: selectedUser.zipCode,
-        country: selectedUser.country,
-        roleIds: roleIds ?? [],
-      });
-    }
-  }, [selectedUser]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (name === "zipCode") {
-      const numericValue = value.replace(/\D/g, "");
-      setUser((prevUser) => ({
-        ...prevUser,
-        [name]: numericValue ? parseInt(numericValue, 10) : 0,
-      }));
-    } else if (name === "rol") {
-      setUser((prevUser) => ({ ...prevUser, [name]: value }));
-
-      if (value === "Administrador") {
-        setRolesSeleccionados([1, 2]);
-      } else if (value === "Empleado") {
-        setRolesSeleccionados([1]);
-      } else {
-        setRolesSeleccionados([]);
-      }
-    } else {
-      setUser((prevUser) => ({ ...prevUser, [name]: value }));
-    }
-  };
-
-  const handleReset = () => {
-    setUser(initialUserState);
-  };
+  console.log(setRolesSeleccionados)
 
   const handleSaveChanges = async () => {
-    // Validar campos obligatorios
     if (!validateRequiredFields(user)) {
       showSnackbar(
         "error",
@@ -140,14 +104,12 @@ const EditUserPage: React.FC = () => {
       return;
     }
 
-    // Validar formato de correo electrónico
     if (!validateEmail(user.email)) {
       showSnackbar("error", "Correo electrónico no válido.");
       return;
     }
 
     try {
-      // Obtener los valores originales del usuario seleccionado
       const originalUser = selectedUser
         ? convertToUserRequest(selectedUser)
         : null;
@@ -169,34 +131,15 @@ const EditUserPage: React.FC = () => {
         roleIds: updatedFields.roleIds ?? user.roleIds,
       };
 
-      // Enviar la solicitud
       await storeUsers
         .getState()
         .updateUser(selectedUser?.id ?? 0, finalUpdateFields);
 
       showSnackbar("success", "Usuario actualizado correctamente.");
-
       clearPasswordFields();
     } catch (error) {
       showSnackbar("error", "Error al actualizar el usuario.");
     }
-  };
-
-  const validateRequiredFields = (user: UserRequest): boolean => {
-    return !!user.name && !!user.email;
-  };
-
-  const validateEmail = (email: string): boolean => {
-    return /\S+@\S+\.\S+/.test(email);
-  };
-
-  const showSnackbar = (
-    severity: "error" | "success",
-    message: string
-  ): void => {
-    setSnackbarSeverity(severity);
-    setMessageSnackbar(message);
-    setOpenSnackbar(true);
   };
 
   const getUpdatedFields = (
@@ -242,7 +185,7 @@ const EditUserPage: React.FC = () => {
   const handleConfirmDelete = async () => {
     try {
       await deleteUser(selectedUser?.id ?? 0);
-      navigate(`/usuarios/historial`);
+      navigate("/usuarios/historial");
     } catch (error) {
       console.error("Error al eliminar el usuario:", error);
     }
@@ -487,7 +430,7 @@ const EditUserPage: React.FC = () => {
               variant="outlined"
               color="error"
               startIcon={<DeleteIcon />}
-              onClick={() => handleDeleteClick()}
+              onClick={handleDeleteClick}
               sx={{
                 borderRadius: 2,
                 padding: "10px 20px",
@@ -507,7 +450,7 @@ const EditUserPage: React.FC = () => {
               variant="outlined"
               color="error"
               startIcon={<ClearIcon />}
-              onClick={handleReset}
+              onClick={resetForm}
               sx={{
                 borderRadius: 2,
                 padding: "10px 20px",
@@ -526,11 +469,10 @@ const EditUserPage: React.FC = () => {
         </Box>
       </Paper>
 
-      {/* Snackbar de confirmación y errores */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
+        onClose={closeSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert severity={snackbarSeverity} sx={{ width: "100%" }}>

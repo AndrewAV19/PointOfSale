@@ -24,6 +24,9 @@ import {
 } from "@mui/icons-material";
 import { UserRequest } from "../../interfaces/users.interface";
 import { storeUsers } from "../../../stores/users.store";
+import { useForm } from "../../../hooks/useForm";
+import { useValidation } from "../../../hooks/useValidation";
+import { useSnackbar } from "../../../hooks/useSnackbar";
 
 const AddUser: React.FC = () => {
   const initialUserState: UserRequest = {
@@ -39,66 +42,43 @@ const AddUser: React.FC = () => {
     roleIds: [],
   };
 
-  const [user, setUser] = useState<UserRequest>(initialUserState);
+  const { form: user, handleChange, resetForm } = useForm(initialUserState);
+
+  const { validateRequiredFields, validateEmail } = useValidation();
+
+  const {
+    openSnackbar,
+    snackbarSeverity,
+    messageSnackbar,
+    showSnackbar,
+    closeSnackbar,
+  } = useSnackbar();
+
   const [showPassword, setShowPassword] = useState(false);
   const [rolesSeleccionados, setRolesSeleccionados] = useState<number[]>([]);
-
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
-    "success"
-  );
-  const [messageSnackbar, setMessageSnackbar] = useState("");
+  console.log(setRolesSeleccionados)
 
   useEffect(() => {
-    setUser(initialUserState); 
+    resetForm(); 
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (name === "zipCode") {
-      const numericValue = value.replace(/\D/g, "");
-      setUser((prevUser) => ({
-        ...prevUser,
-        [name]: numericValue ? parseInt(numericValue, 10) : 0,
-      }));
-    } else if (name === "rol") {
-      setUser((prevUser) => ({ ...prevUser, [name]: value }));
-
-      if (value === "Administrador") {
-        setRolesSeleccionados([1, 2]);
-      } else if (value === "Empleado") {
-        setRolesSeleccionados([1]);
-      } else {
-        setRolesSeleccionados([]);
-      }
-    } else {
-      setUser((prevUser) => ({ ...prevUser, [name]: value }));
-    }
-  };
-
-  console.log(rolesSeleccionados);
-
-  const handleReset = () => {
-    setUser(initialUserState);
-  };
-
   const handleConfirm = async () => {
-    if (!user.name || !user.email || !user.phone || !user.password) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Por favor, completa todos los campos obligatorios.");
-      setOpenSnackbar(true);
+    // Validar campos obligatorios
+    if (!validateRequiredFields(user)) {
+      showSnackbar(
+        "error",
+        "Por favor, completa todos los campos obligatorios."
+      );
       return;
     }
-    if (!/\S+@\S+\.\S+/.test(user.email)) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Correo electrónico no válido.");
-      setOpenSnackbar(true);
+
+    // Validar formato de correo electrónico
+    if (!validateEmail(user.email)) {
+      showSnackbar("error", "Correo electrónico no válido.");
       return;
     }
 
     try {
-      // Llama a la función createClient del store
       await storeUsers.getState().createUser({
         name: user.name,
         email: user.email,
@@ -112,14 +92,10 @@ const AddUser: React.FC = () => {
         roleIds: rolesSeleccionados,
       });
 
-      setSnackbarSeverity("success");
-      setMessageSnackbar("Usuario agregado correctamente.");
-      setOpenSnackbar(true);
-      handleReset();
+      showSnackbar("success", "Usuario agregado correctamente.");
+      resetForm(); 
     } catch (error) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Error al crear el usuario.");
-      setOpenSnackbar(true);
+      showSnackbar("error", "Error al crear el usuario.");
     }
   };
 
@@ -265,7 +241,6 @@ const AddUser: React.FC = () => {
               onChange={handleChange}
               variant="outlined"
             />
-
             <TextField
               fullWidth
               label="País"
@@ -323,7 +298,7 @@ const AddUser: React.FC = () => {
               variant="outlined"
               color="error"
               startIcon={<ClearIcon />}
-              onClick={handleReset}
+              onClick={resetForm}
               sx={{
                 borderRadius: 2,
                 padding: "10px 20px",
@@ -346,7 +321,7 @@ const AddUser: React.FC = () => {
       <Snackbar
         open={openSnackbar}
         autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
+        onClose={closeSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert severity={snackbarSeverity} sx={{ width: "100%" }}>
