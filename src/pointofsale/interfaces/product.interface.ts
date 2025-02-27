@@ -1,3 +1,5 @@
+import { Supplier } from "./supplier.interface";
+
 export interface Product {
     id: number;
     name: string;
@@ -5,12 +7,10 @@ export interface Product {
     price: number;
     stock?: number; 
     category?: string; 
-    supplier?: string; 
+    suppliers?: Supplier[]; 
     costPrice: number; 
     discount?: number; 
     taxRate?: number;
     images?: string[]; 
-    createdAt?: Date;
-    updatedAt?: Date; 
   }
   

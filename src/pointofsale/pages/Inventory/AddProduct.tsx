@@ -13,6 +13,12 @@ import {
   IconButton,
   Snackbar,
   Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 import {
   Save as SaveIcon,
@@ -21,6 +27,8 @@ import {
   Clear as ClearIcon,
 } from "@mui/icons-material";
 import { ModalSearchCategories } from "../../modales/ModalSearchCategories";
+import { Supplier } from "../../interfaces/supplier.interface";
+import { ModalSearchSuppliers } from "../../modales/ModalSearchSuppliers";
 
 const AddProduct: React.FC = () => {
   const [product, setProduct] = useState({
@@ -32,9 +40,11 @@ const AddProduct: React.FC = () => {
     discount: false,
     discountPercentage: 0,
     photo: null as File | null,
+    suppliers: [] as Supplier[],
   });
   const [category, setCategory] = useState("");
   const [openModal, setOpenModal] = useState(false);
+  const [openSupplierModal, setOpenSupplierModal] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning"
@@ -46,7 +56,7 @@ const AddProduct: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
   ) => {
     const { name, value } = e.target;
-  
+
     // Validar que el valor sea un número para los campos de precio y stock
     if (name === "price" || name === "stock") {
       const numericValue = parseFloat(value as string);
@@ -54,7 +64,7 @@ const AddProduct: React.FC = () => {
         return;
       }
     }
-  
+
     setProduct((prevProduct) => ({
       ...prevProduct,
       [name as string]: value,
@@ -72,6 +82,14 @@ const AddProduct: React.FC = () => {
     }
   };
 
+  const handleSelectSupplier = (selectedSupplier: Supplier) => {
+    setProduct((prevProduct) => ({
+      ...prevProduct,
+      suppliers: [...prevProduct.suppliers, selectedSupplier],
+    }));
+    setOpenSupplierModal(false);
+  };
+
   const handleReset = () => {
     setProduct({
       name: "",
@@ -82,6 +100,7 @@ const AddProduct: React.FC = () => {
       discount: false,
       discountPercentage: 0,
       photo: null,
+      suppliers: [],
     });
     setCategory("");
     setPreview(null);
@@ -134,7 +153,16 @@ const AddProduct: React.FC = () => {
     // Si todos los campos están correctos
     setSnackbarSeverity("success");
     handleOpenSnackbar("Producto agregado correctamente.");
-    console.log("categoria: "+ category)
+    console.log("categoria: " + category);
+  };
+
+  const handleRemoveSupplier = (supplierId: number) => {
+    setProduct((prevProduct) => ({
+      ...prevProduct,
+      suppliers: prevProduct.suppliers.filter(
+        (supplier) => supplier.id !== supplierId
+      ),
+    }));
   };
 
   return (
@@ -193,6 +221,70 @@ const AddProduct: React.FC = () => {
             multiline
             rows={4}
           />
+        </Box>
+
+        <Box className="mb-6">
+          <TextField
+            label="Proveedores"
+            fullWidth
+            value={product.suppliers
+              .map((supplier) => supplier.name)
+              .join(", ")}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setOpenSupplierModal(true)}>
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        </Box>
+
+        <ModalSearchSuppliers
+          open={openSupplierModal}
+          handleClose={() => setOpenSupplierModal(false)}
+          handleSelect={handleSelectSupplier}
+        />
+
+        <Box className="mb-6">
+          <Typography variant="h6" className="mb-2">
+            Proveedores seleccionados
+          </Typography>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Nombre</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Telefono</TableCell>
+                  <TableCell>Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {product.suppliers.map((supplier) => (
+                  <TableRow key={supplier.id}>
+                    <TableCell>{supplier.id}</TableCell>
+                    <TableCell>{supplier.name}</TableCell>
+                    <TableCell>{supplier.email}</TableCell>
+                    <TableCell>{supplier.phone}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleRemoveSupplier(supplier.id ?? 0)}
+                        color="error"
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
 
         {/* Precio y Stock */}

@@ -21,8 +21,9 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
-import { useState } from "react";
-import { clients } from "../mocks/customerMock";
+import { useEffect, useState } from "react";
+//import { clients } from "../mocks/customerMock";
+import { storeClients } from "../../stores/clients.store";
 
 interface ModalSearchToClientProps {
   open: boolean;
@@ -35,10 +36,15 @@ export const ModalSearchClients: React.FC<ModalSearchToClientProps> = ({
   handleClose,
   handleSelect,
 }) => {
+    const { getClients, listClients } = storeClients();
   const [search, setSearch] = useState("");
 
+  useEffect(() => {
+    getClients();
+  }, [getClients]);
+
   // Filtrar clientes según el texto de búsqueda
-  const filteredClients = clients.filter((client) =>
+  const filteredClients = listClients.filter((client) =>
     client.name.toLowerCase().includes(search.toLowerCase())
   );
 

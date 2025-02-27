@@ -13,10 +13,3 @@ export interface Supplier {
     website?: string;
   }
   
-  export interface SupplierProduct {
-    productId: number;
-    productName: string;
-    costPrice: number; 
-    stockSupplied: number;
-  }
-  

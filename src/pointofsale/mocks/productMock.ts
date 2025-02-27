@@ -8,13 +8,11 @@ export const products: Product[] = [
     price: 15, 
     stock: 50, 
     category: "Botanas", 
-    supplier: "Sabritas", 
+    suppliers: [{ id: 1, name: "Sabritas" }], 
     costPrice: 10, 
     discount: 0, 
     taxRate: 0.16, 
     images: ["https://example.com/sabritas.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 2, 
@@ -23,13 +21,11 @@ export const products: Product[] = [
     price: 20, 
     stock: 100, 
     category: "Bebidas", 
-    supplier: "Coca-Cola", 
+    suppliers: [{ id: 2, name: "Coca-Cola" }], 
     costPrice: 14, 
     discount: 5, 
     taxRate: 0.16, 
     images: ["https://example.com/coca-cola.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 3, 
@@ -38,13 +34,11 @@ export const products: Product[] = [
     price: 18, 
     stock: 80, 
     category: "Bebidas", 
-    supplier: "PepsiCo", 
+    suppliers: [{ id: 3, name: "PepsiCo" }], 
     costPrice: 13, 
     discount: 3, 
     taxRate: 0.16, 
     images: ["https://example.com/pepsi.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 4, 
@@ -53,13 +47,11 @@ export const products: Product[] = [
     price: 22, 
     stock: 60, 
     category: "Botanas", 
-    supplier: "Sabritas", 
+    suppliers: [{ id: 1, name: "Sabritas" }], 
     costPrice: 15, 
     discount: 2, 
     taxRate: 0.16, 
     images: ["https://example.com/doritos.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 5, 
@@ -68,13 +60,11 @@ export const products: Product[] = [
     price: 10, 
     stock: 90, 
     category: "Dulces", 
-    supplier: "Ricolino", 
+    suppliers: [{ id: 4, name: "Ricolino" }], 
     costPrice: 6, 
     discount: 0, 
     taxRate: 0.16, 
     images: ["https://example.com/bubulubu.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 6, 
@@ -83,13 +73,11 @@ export const products: Product[] = [
     price: 12, 
     stock: 120, 
     category: "Galletas", 
-    supplier: "Gamesa", 
+    suppliers: [{ id: 5, name: "Gamesa" }], 
     costPrice: 8, 
     discount: 1, 
     taxRate: 0.16, 
     images: ["https://example.com/galletas-maria.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 7, 
@@ -98,13 +86,11 @@ export const products: Product[] = [
     price: 5, 
     stock: 200, 
     category: "Dulces", 
-    supplier: "Wrigley's", 
+    suppliers: [{ id: 6, name: "Wrigley's" }], 
     costPrice: 3, 
     discount: 0, 
     taxRate: 0.16, 
     images: ["https://example.com/orbit.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 8, 
@@ -113,13 +99,11 @@ export const products: Product[] = [
     price: 25, 
     stock: 70, 
     category: "Dulces", 
-    supplier: "Mars", 
+    suppliers: [{ id: 7, name: "Mars" }], 
     costPrice: 18, 
     discount: 2, 
     taxRate: 0.16, 
     images: ["https://example.com/mms.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 9, 
@@ -128,13 +112,11 @@ export const products: Product[] = [
     price: 18, 
     stock: 65, 
     category: "Botanas", 
-    supplier: "Sabritas", 
+    suppliers: [{ id: 1, name: "Sabritas" }], 
     costPrice: 12, 
     discount: 1, 
     taxRate: 0.16, 
     images: ["https://example.com/cheetos.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   },
   { 
     id: 10, 
@@ -143,12 +125,10 @@ export const products: Product[] = [
     price: 30, 
     stock: 40, 
     category: "Bebidas", 
-    supplier: "Red Bull", 
+    suppliers: [{ id: 8, name: "Red Bull" }], 
     costPrice: 22, 
     discount: 3, 
     taxRate: 0.16, 
     images: ["https://example.com/redbull.jpg"], 
-    createdAt: new Date(), 
-    updatedAt: new Date() 
   }
 ];

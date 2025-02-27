@@ -17,8 +17,9 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
-import { useState } from "react";
-import { suppliers } from "../mocks/suppliersMock";
+import { useEffect, useState } from "react";
+//import { suppliers } from "../mocks/suppliersMock";
+import { storeSuppliers } from "../../stores/suppliers.store";
 
 interface ModalSearchToClientProps {
   open: boolean;
@@ -31,11 +32,15 @@ export const ModalSearchSuppliers: React.FC<ModalSearchToClientProps> = ({
   handleClose,
   handleSelect,
 }) => {
-
+  const { getSuppliers, listSuppliers } = storeSuppliers();
   const [search, setSearch] = useState("");
 
+   useEffect(() => {
+      getSuppliers();
+    }, [getSuppliers]);
+
   // Filtrar clientes según el texto de búsqueda
-  const filteredClients = suppliers.filter((supplier) =>
+  const filteredClients = listSuppliers.filter((supplier) =>
     supplier.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -83,6 +88,7 @@ export const ModalSearchSuppliers: React.FC<ModalSearchToClientProps> = ({
                 </TableCell>
                 <TableCell>Nombre</TableCell>
                 <TableCell>Email</TableCell>
+                <TableCell>Telefono</TableCell>
                 <TableCell align="center">Acción</TableCell>
               </TableRow>
             </TableHead>
@@ -95,6 +101,7 @@ export const ModalSearchSuppliers: React.FC<ModalSearchToClientProps> = ({
                     </TableCell>
                     <TableCell>{client.name}</TableCell>
                     <TableCell>{client.email}</TableCell>
+                    <TableCell>{client.phone}</TableCell>
                     <TableCell align="center">
                       <Button
                         variant="contained"
