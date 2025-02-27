@@ -9,18 +9,29 @@ interface ClientsState {
   getClients: () => Promise<void>;
 
   createClient: (dataSend: {
-    id: number;
     name: string;
     email: string;
     phone: string;
     address: string;
     city: string;
     state: string;
-    zipCode: string;
+    zipCode: number;
     country: string;
-    createdAt: Date;
-    updatedAt: Date;
   }) => Promise<Clients[]>;
+
+  updateClient: (
+    id: number,
+    dataSend: {
+      name: string;
+      email: string;
+      phone: string;
+      address: string;
+      city: string;
+      state: string;
+      zipCode: number;
+      country: string;
+    }
+  ) => Promise<Clients>;
 
   deleteClient: (id: number) => Promise<void>;
 }
@@ -53,18 +64,38 @@ const clientsStore: StateCreator<ClientsState> = (set, get) => ({
     }
   },
 
+  updateClient: async (id, dataSend) => {
+    try {
+      set({ loading: true });
+      const updatedClient = await ClientsService.updateClient(id, dataSend);
+
+      const updatedClients = get().listClients.map((client) =>
+        client.id === id ? updatedClient : client
+      );
+
+      set({ listClients: updatedClients, loading: false });
+      return updatedClient;
+    } catch (error) {
+      console.error(error);
+      set({ loading: false });
+      throw new Error("Error al actualizar el cliente");
+    }
+  },
+
   deleteClient: async (id: number) => {
-      try {
-        set({ loading: true });
-        await ClientsService.deleteClient(id);
-        const updatedClients = get().listClients.filter(client => client.id !== id);
-        set({ listClients: updatedClients, loading: false });
-      } catch (error) {
-        console.error(error);
-        set({ loading: false });
-        throw new Error("Error al eliminar el cliente");
-      }
-    },
+    try {
+      set({ loading: true });
+      await ClientsService.deleteClient(id);
+      const updatedClients = get().listClients.filter(
+        (client) => client.id !== id
+      );
+      set({ listClients: updatedClients, loading: false });
+    } catch (error) {
+      console.error(error);
+      set({ loading: false });
+      throw new Error("Error al eliminar el cliente");
+    }
+  },
 });
 
 export const storeClients = create<ClientsState>()(

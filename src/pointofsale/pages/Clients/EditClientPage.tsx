@@ -16,13 +16,18 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   LocationOn as LocationOnIcon,
+  Delete as DeleteIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
-import {  Clients } from "../../interfaces/clients.interface";
+import { Clients } from "../../interfaces/clients.interface";
 import { storeClients } from "../../../stores/clients.store";
+import { useNavigate } from "react-router";
+import { dataStore } from "../../../stores/generalData.store";
+import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
-const AddClient: React.FC = () => {
-
+const EditClientPage: React.FC = () => {
   const initialClientState: Clients = {
+    id: 0,
     name: "",
     email: "",
     phone: "",
@@ -32,19 +37,35 @@ const AddClient: React.FC = () => {
     zipCode: 0,
     country: "",
   };
-
+  const navigate = useNavigate();
+  const { selectedClient } = dataStore();
+  const { deleteClient } = storeClients();
   const [client, setClient] = useState<Clients>(initialClientState);
-
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
-    "success"
-  );
+  const [openDialog, setOpenDialog] = useState(false);
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    "success" | "error" | "info"
+  >("success");
   const [messageSnackbar, setMessageSnackbar] = useState("");
 
-    useEffect(() => {
-      setClient(initialClientState); 
-    }, []);
-  
+  useEffect(() => {
+    setClient(initialClientState);
+  }, []);
+
+  useEffect(() => {
+    if (selectedClient) {
+      setClient({
+        name: selectedClient.name,
+        email: selectedClient.email,
+        phone: selectedClient.phone,
+        address: selectedClient.address,
+        city: selectedClient.city,
+        state: selectedClient.state,
+        zipCode: selectedClient.zipCode,
+        country: selectedClient.country,
+      });
+    }
+  }, [selectedClient]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -67,53 +88,128 @@ const AddClient: React.FC = () => {
     setClient(initialClientState);
   };
 
-  const handleConfirm = async () => {
-    if (!client.name || !client.email || !client.phone) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Por favor, completa los campos obligatorios.");
-      setOpenSnackbar(true);
+  const handleSaveChanges = async () => {
+    // Validar campos obligatorios
+    if (!validateRequiredFields(client)) {
+      showSnackbar(
+        "error",
+        "Por favor, completa todos los campos obligatorios."
+      );
       return;
     }
-    if (!/\S+@\S+\.\S+/.test(client.email)) {
-      setSnackbarSeverity("error");
-      setMessageSnackbar("Correo electrónico no válido.");
-      setOpenSnackbar(true);
+    // Validar formato de correo electrónico
+    if (!validateEmail(client.email)) {
+      showSnackbar("error", "Correo electrónico no válido.");
       return;
     }
 
     try {
-          // Llama a la función createClient del store
-          await storeClients.getState().createClient({
-            name: client.name,
-            email: client.email,
-            phone: client.phone,
-            address: client.address,
-            city: client.city,
-            state: client.state,
-            zipCode: client.zipCode,
-            country: client.country
-          });
-    
-          setSnackbarSeverity("success");
-          setMessageSnackbar("Cliente agregado correctamente.");
-          setOpenSnackbar(true);
-          handleReset();
-        } catch (error) {
-          setSnackbarSeverity("error");
-          setMessageSnackbar("Error al crear el Cliente.");
-          setOpenSnackbar(true);
-        }
+      // Obtener los valores originales del usuario seleccionado
+      const originalClient = selectedClient;
+
+      const updatedFields = originalClient
+        ? getUpdatedFields(client, originalClient)
+        : {};
+
+      const finalUpdateFields = {
+        name: updatedFields.name ?? client.name,
+        email: updatedFields.email ?? client.email,
+        phone: updatedFields.phone ?? client.phone,
+        address: updatedFields.address ?? client.address,
+        city: updatedFields.city ?? client.city,
+        state: updatedFields.state ?? client.state,
+        zipCode: updatedFields.zipCode ?? client.zipCode,
+        country: updatedFields.country ?? client.country,
+      };
+
+      // Enviar la solicitud
+      await storeClients
+        .getState()
+        .updateClient(selectedClient?.id ?? 0, finalUpdateFields);
+
+      showSnackbar("success", "Cliente actualizado correctamente.");
+    } catch (error) {
+      showSnackbar("error", "Error al actualizar el cliente.");
+    }
+  };
+
+  const validateRequiredFields = (client: Clients): boolean => {
+    return !!client.name && !!client.email;
+  };
+
+  const validateEmail = (email: string): boolean => {
+    return /\S+@\S+\.\S+/.test(email);
+  };
+
+  const showSnackbar = (
+    severity: "error" | "success",
+    message: string
+  ): void => {
+    setSnackbarSeverity(severity);
+    setMessageSnackbar(message);
+    setOpenSnackbar(true);
+  };
+
+  const getUpdatedFields = (
+    client: Clients,
+    originalClient: Clients
+  ): Partial<Clients> => {
+    const updatedFields: Partial<Clients> = {};
+
+    if (client.name !== originalClient.name) updatedFields.name = client.name;
+    if (client.email !== originalClient.email)
+      updatedFields.email = client.email;
+    if (client.phone !== originalClient.phone)
+      updatedFields.phone = client.phone;
+    if (client.address !== originalClient.address)
+      updatedFields.address = client.address;
+    if (client.city !== originalClient.city) updatedFields.city = client.city;
+    if (client.state !== originalClient.state)
+      updatedFields.state = client.state;
+    if (client.zipCode !== originalClient.zipCode)
+      updatedFields.zipCode = client.zipCode;
+    if (client.country !== originalClient.country)
+      updatedFields.country = client.country;
+
+    return updatedFields;
+  };
+
+  const handleDeleteClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteClient(selectedClient?.id ?? 0);
+      navigate(`/clientes/historial`);
+    } catch (error) {
+      console.error("Error al eliminar el cliente:", error);
+    }
+  };
+
+  const handleGoBack = () => {
+    navigate(-1);
   };
 
   return (
     <Container sx={{ py: 4 }}>
+      {/* Botón para regresar */}
+      <Box sx={{ marginBottom: 3 }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={handleGoBack}
+        >
+          Regresar
+        </Button>
+      </Box>
       <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
         <Typography
           variant="h4"
           component="h1"
           sx={{ mb: 4, textAlign: "center", fontWeight: "bold" }}
         >
-          Agregar Cliente
+          Editar Cliente
         </Typography>
 
         {/* Formulario */}
@@ -237,7 +333,7 @@ const AddClient: React.FC = () => {
               variant="contained"
               color="primary"
               startIcon={<SaveIcon />}
-              onClick={handleConfirm}
+              onClick={handleSaveChanges}
               sx={{
                 borderRadius: 2,
                 px: 3,
@@ -245,7 +341,27 @@ const AddClient: React.FC = () => {
                 textTransform: "none",
               }}
             >
-              Agregar Cliente
+              Guardar Cambios
+            </Button>
+
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => handleDeleteClick()}
+              sx={{
+                borderRadius: 2,
+                padding: "10px 20px",
+                fontWeight: "bold",
+                borderColor: "#d32f2f",
+                "&:hover": {
+                  borderColor: "#b71c1c",
+                  backgroundColor: "#ffebee",
+                },
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              Eliminar Cliente
             </Button>
 
             <Button
@@ -282,8 +398,17 @@ const AddClient: React.FC = () => {
           {messageSnackbar}
         </Alert>
       </Snackbar>
+
+      {/* Modal de Confirmación */}
+      <ConfirmDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Eliminación"
+        message="¿Estás seguro de que deseas eliminar este cliente?"
+      />
     </Container>
   );
 };
 
-export default AddClient;
+export default EditClientPage;

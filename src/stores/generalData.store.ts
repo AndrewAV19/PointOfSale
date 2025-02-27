@@ -2,18 +2,25 @@ import { StateCreator, create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Users } from "../pointofsale/interfaces/users.interface";
 import { UsersService } from "../services/users.service";
+import { Clients } from "../pointofsale/interfaces/clients.interface";
+import { ClientsService } from "../services/clients.service";
 
 interface DataState {
   selectedUser: Users | null;
   setSelectedUser: (user: Users) => void;
+  selectedClient: Clients | null;
+  setSelectedClient: (client: Clients) => void;
   statusRefresh: boolean;
   getUserById: (idUser: number) => Promise<void>;
+  getClientById: (idClient: number) => Promise<void>;
 }
 
 
 const storeData: StateCreator<DataState> = (set) => ({
   selectedUser: null,
   setSelectedUser: (user: Users) => set(() => ({ selectedUser: user })),
+  selectedClient: null,
+  setSelectedClient: (client: Clients) => set(() => ({ selectedClient: client })),
   statusRefresh: false,
  
   getUserById: async (idUser: number) => {
@@ -21,6 +28,17 @@ const storeData: StateCreator<DataState> = (set) => ({
       set(() => ({ statusRefresh: true }));
       const user = await UsersService.getUserById(idUser);
       set(() => ({ selectedUser: user, statusRefresh: false }));
+    } catch (error) {
+      console.error(error);
+      set(() => ({ statusRefresh: false }));
+    }
+  },
+
+  getClientById: async (idClient: number) => {
+    try {
+      set(() => ({ statusRefresh: true }));
+      const client = await ClientsService.getClientById(idClient);
+      set(() => ({ selectedClient: client, statusRefresh: false }));
     } catch (error) {
       console.error(error);
       set(() => ({ statusRefresh: false }));

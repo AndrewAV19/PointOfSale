@@ -17,7 +17,7 @@ import { storeClients } from "../../../stores/clients.store";
 
 export default function HistoryClients() {
   const { listClients, getClients, deleteClient } = storeClients();
-  const { getUserById } = dataStore();
+  const { getClientById } = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const [clients, setClients] = useState(listClients);
@@ -45,7 +45,7 @@ export default function HistoryClients() {
     if (selectedClientId) {
       try {
         await deleteClient(selectedClientId);
-        setClients(clients.filter((user) => user.id !== selectedClientId));
+        setClients(clients.filter((client) => client.id !== selectedClientId));
         setOpenDialog(false);
       } catch (error) {
         console.error("Error al eliminar el cliente:", error);
@@ -98,20 +98,20 @@ export default function HistoryClients() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredVentas.map((user) => (
-                <TableRow key={user.id} className="hover:bg-gray-100">
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.phone}</TableCell>
-                  <TableCell>{user.address}</TableCell>
+              filteredVentas.map((client) => (
+                <TableRow key={client.id} className="hover:bg-gray-100">
+                  <TableCell>{client.id}</TableCell>
+                  <TableCell>{client.name}</TableCell>
+                  <TableCell>{client.email}</TableCell>
+                  <TableCell>{client.phone}</TableCell>
+                  <TableCell>{client.address}</TableCell>
                   <TableCell>
                     <Button
                       variant="outlined"
                       startIcon={<Visibility />}
                       size="small"
                       onClick={async () => {
-                        await getUserById(user.id);
+                        await getClientById(client.id ?? 0);
                         navigate(`/clientes/editar`);
                       }}
                     >
@@ -122,7 +122,7 @@ export default function HistoryClients() {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(user.id)}
+                      onClick={() => handleDeleteClick(client.id ?? 0)}
                       sx={{ ml: 1 }}
                     >
                       Eliminar
