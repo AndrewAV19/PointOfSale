@@ -18,6 +18,8 @@ import HistoryUsers from "../pages/Users/HistoryUsers";
 import EditUserPage from "../pages/Users/EditUserPage";
 import HistoryClients from "../pages/Clients/HistoryClients";
 import EditClientPage from "../pages/Clients/EditClientPage";
+import HistorySuppliers from "../pages/Suppliers/HistorySuppliers";
+import EditSupplierPage from "../pages/Suppliers/EditSupplierPage";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -42,6 +44,8 @@ const PointOfSaleRoutes = () => {
         <Route path="/clientes/editar" element={<EditClientPage />}></Route>
 
         <Route path="/proveedores/agregar" element={<AddSupplier />}></Route>
+        <Route path="/proveedores/historial" element={<HistorySuppliers />}></Route>
+        <Route path="/proveedores/editar" element={<EditSupplierPage />}></Route>
 
         <Route path="/usuarios/agregar" element={<AddUser />}></Route>
         <Route path="/usuarios/historial" element={<HistoryUsers />}></Route>

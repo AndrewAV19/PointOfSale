@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   TextField,
   Button,
@@ -46,10 +46,6 @@ const AddClient: React.FC = () => {
     showSnackbar,
     closeSnackbar,
   } = useSnackbar();
-
-  useEffect(() => {
-    resetForm(); 
-  }, []);
 
   const handleConfirm = async () => {
     if (!validateRequiredFields(client, requiredFields)) {
