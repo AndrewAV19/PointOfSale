@@ -21,8 +21,9 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
-import { useState } from "react";
-import { categories } from "../mocks/categoriesMock";
+import { useEffect, useState } from "react";
+//import { categories } from "../mocks/categoriesMock";
+import { storeCategories } from "../../stores/categories.store";
 
 
 interface ModalSearchToCategoriesProps {
@@ -36,10 +37,15 @@ export const ModalSearchCategories: React.FC<ModalSearchToCategoriesProps> = ({
   handleClose,
   handleSelect,
 }) => {
+   const { getCategories, listCategories } = storeCategories();
   const [search, setSearch] = useState("");
 
+     useEffect(() => {
+        getCategories();
+      }, [getCategories]);
+
   // Filtrar categorias según el texto de búsqueda
-  const filteredCategories = categories.filter((category) =>
+  const filteredCategories = listCategories.filter((category) =>
     category.name.toLowerCase().includes(search.toLowerCase())
   );
 

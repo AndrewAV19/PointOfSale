@@ -5,7 +5,6 @@ import ProtectedRoute from "./ProtectedRoute";
 import useAutoLogout from "../hooks/useAutoLogout";
 import useActivityTracker from "../hooks/useActivityTracker";
 
-
 const AppRouter = () => {
   useAutoLogout();
   useActivityTracker();

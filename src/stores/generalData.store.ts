@@ -6,6 +6,8 @@ import { Clients } from "../pointofsale/interfaces/clients.interface";
 import { ClientsService } from "../services/clients.service";
 import { Supplier } from "../pointofsale/interfaces/supplier.interface";
 import { SuppliersService } from "../services/suppliers.service";
+import { Categories } from "../pointofsale/interfaces/categories.interface";
+import { CategoriesService } from "../services/categories.service";
 
 interface DataState {
   selectedUser: Users | null;
@@ -14,10 +16,13 @@ interface DataState {
   setSelectedClient: (client: Clients) => void;
   selectedSupplier: Supplier | null;
   setSelectedSupplier: (supplier: Supplier) => void;
+  selectedCategory: Categories | null;
+  setSelectedCategory: (category: Categories) => void;
   statusRefresh: boolean;
   getUserById: (idUser: number) => Promise<void>;
   getClientById: (idClient: number) => Promise<void>;
   getSupplierById: (idSupplier: number) => Promise<void>;
+  getCategoryById: (idCategory: number) => Promise<void>;
 }
 
 
@@ -28,6 +33,8 @@ const storeData: StateCreator<DataState> = (set) => ({
   setSelectedClient: (client: Clients) => set(() => ({ selectedClient: client })),
   selectedSupplier: null,
   setSelectedSupplier: (supplier: Supplier) => set(() => ({ selectedSupplier: supplier })),
+  selectedCategory: null,
+  setSelectedCategory: (category: Categories) => set(() => ({ selectedCategory: category })),
   statusRefresh: false,
  
   getUserById: async (idUser: number) => {
@@ -57,6 +64,17 @@ const storeData: StateCreator<DataState> = (set) => ({
       set(() => ({ statusRefresh: true }));
       const supplier = await SuppliersService.getSupplierById(idSupplier);
       set(() => ({ selectedSupplier: supplier, statusRefresh: false }));
+    } catch (error) {
+      console.error(error);
+      set(() => ({ statusRefresh: false }));
+    }
+  },
+
+  getCategoryById: async (idCategory: number) => {
+    try {
+      set(() => ({ statusRefresh: true }));
+      const category = await CategoriesService.getCategoryById(idCategory);
+      set(() => ({ selectedCategory: category, statusRefresh: false }));
     } catch (error) {
       console.error(error);
       set(() => ({ statusRefresh: false }));

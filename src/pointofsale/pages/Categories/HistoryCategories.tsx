@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -10,34 +10,47 @@ import {
   Button,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { categories as initialCategories } from "../../mocks/categoriesMock";
+
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
+import { dataStore } from "../../../stores/generalData.store";
+import { storeCategories } from "../../../stores/categories.store";
 
 export default function HistoryCategories() {
+  const { listCategories, getCategories, deleteCategory } = storeCategories();
+  const { getCategoryById } = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState(listCategories);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<
-    string | number | null
-  >(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
-  console.log(setSelectedCategoryId);
+  useEffect(() => {
+    getCategories();
+  }, [getCategories]);
 
-  // Filtrar productos según la búsqueda
+  useEffect(() => {
+    setCategories(listCategories);
+  }, [listCategories]);
+
   const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(search.toLowerCase())
+    category?.name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Función para eliminar un producto
-  const handleDeleteClick = (id: string | number) => {
+  const handleDeleteClick = (id: number) => {
     setSelectedCategoryId(id);
     setOpenDialog(true);
   };
 
-  const handleConfirmDelete = () => {
-    setCategories(categories.filter((p) => p.id !== selectedCategoryId));
-    setOpenDialog(false);
+  const handleConfirmDelete = async () => {
+    if (selectedCategoryId) {
+      try {
+        await deleteCategory(selectedCategoryId);
+        setCategories(categories.filter((category) => category.id !== selectedCategoryId));
+        setOpenDialog(false);
+      } catch (error) {
+        console.error("Error al eliminar la categoría:", error);
+      }
+    }
   };
 
   return (
@@ -63,7 +76,7 @@ export default function HistoryCategories() {
             <TableRow className="bg-gray-200">
               <TableCell>ID</TableCell>
               <TableCell>Nombre</TableCell>
-              <TableCell>Descripcion</TableCell>
+              <TableCell>Descripción</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -78,7 +91,7 @@ export default function HistoryCategories() {
                       textAlign: "center",
                     }}
                   >
-                    Aún no se han registrado categorías.
+                    Aún no se han agregado categorías.
                   </div>
                 </TableCell>
               </TableRow>
@@ -87,23 +100,25 @@ export default function HistoryCategories() {
                 <TableRow key={category.id} className="hover:bg-gray-100">
                   <TableCell>{category.id}</TableCell>
                   <TableCell>{category.name}</TableCell>
-                  <TableCell>{category.description}</TableCell>
+                  <TableCell>{category.description ?? "Sin descripción"}</TableCell>
                   <TableCell>
                     <Button
                       variant="outlined"
                       startIcon={<Visibility />}
                       size="small"
-                      onClick={() =>
-                        navigate(`/inventario/categorias/editar/${category.id}`)
-                      }
+                      onClick={async () => {
+                        await getCategoryById(category.id ?? 0);
+                        navigate(`/inventario/categorias/editar`);
+                      }}
                     >
                       Ver
                     </Button>
+
                     <Button
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(category.id)}
+                      onClick={() => handleDeleteClick(category.id ?? 0)}
                       sx={{ ml: 1 }}
                     >
                       Eliminar

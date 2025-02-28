@@ -20,6 +20,7 @@ import HistoryClients from "../pages/Clients/HistoryClients";
 import EditClientPage from "../pages/Clients/EditClientPage";
 import HistorySuppliers from "../pages/Suppliers/HistorySuppliers";
 import EditSupplierPage from "../pages/Suppliers/EditSupplierPage";
+import EditCategoryPage from "../pages/Categories/EditCategoryPage";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -38,6 +39,7 @@ const PointOfSaleRoutes = () => {
 
         <Route path="/inventario/categorias/agregar" element={<AddCategory />}></Route>
         <Route path="/inventario/categorias/historial" element={<HistoryCategories />}></Route>
+        <Route path="/inventario/categorias/editar" element={<EditCategoryPage />}></Route>
 
         <Route path="/clientes/agregar" element={<AddClient />}></Route>
         <Route path="/clientes/historial" element={<HistoryClients />}></Route>
