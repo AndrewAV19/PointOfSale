@@ -25,7 +25,6 @@ import { useEffect, useState } from "react";
 //import { categories } from "../mocks/categoriesMock";
 import { storeCategories } from "../../stores/categories.store";
 
-
 interface ModalSearchToCategoriesProps {
   open: boolean;
   handleClose: () => void;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -10,19 +10,29 @@ import {
   Button,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { products as initialProducts } from "../../mocks/historyProductsMock";
+
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
+//import { products as initialProducts } from "../../mocks/historyProductsMock";
+import { storeProducts } from "../../../stores/products.store";
+import { dataStore } from "../../../stores/generalData.store";
+
 
 export default function HistoryProducts() {
+    const { listProducts, getProducts, deleteProduct } = storeProducts();
+    const { getProductById} = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const [products, setProducts] = useState(initialProducts);
+  const [products, setProducts] = useState(listProducts);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<
-    string | number | null
-  >(null);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
-  console.log(setSelectedProductId);
+   useEffect(() => {
+     getProducts();
+   }, [getProducts]);
+ 
+   useEffect(() => {
+     setProducts(listProducts);
+   }, [listProducts]);
 
   // Filtrar productos según la búsqueda
   const filteredProducts = products.filter((venta) =>
@@ -30,14 +40,21 @@ export default function HistoryProducts() {
   );
 
   // Función para eliminar un producto
-  const handleDeleteClick = (id: string | number) => {
+  const handleDeleteClick = (id: number) => {
     setSelectedProductId(id);
     setOpenDialog(true);
   };
 
-  const handleConfirmDelete = () => {
-    setProducts(products.filter((p) => p.id !== selectedProductId));
-    setOpenDialog(false);
+  const handleConfirmDelete = async () => {
+    if (selectedProductId) {
+      try {
+        await deleteProduct(selectedProductId);
+        setProducts(products.filter((product) => product.id !== selectedProductId));
+        setOpenDialog(false);
+      } catch (error) {
+        console.error("Error al eliminar el producto:", error);
+      }
+    }
   };
 
   return (
@@ -90,18 +107,19 @@ export default function HistoryProducts() {
                 <TableRow key={producto.id} className="hover:bg-gray-100">
                   <TableCell>{producto.id}</TableCell>
                   <TableCell>{producto.name}</TableCell>
-                  <TableCell>{producto.category.name}</TableCell>
+                  <TableCell>{producto.category?.name}</TableCell>
                   <TableCell>{producto.price}</TableCell>
                   <TableCell>{producto.stock}</TableCell>
-                  <TableCell>{producto.photo}</TableCell>
+                  <TableCell>{producto.images}</TableCell>
                   <TableCell>
                     <Button
                       variant="outlined"
                       startIcon={<Visibility />}
                       size="small"
-                      onClick={() =>
-                        navigate(`/inventario/productos/editar/${producto.id}`)
-                      }
+                      onClick={async () => {
+                        await getProductById(producto.id ?? 0);
+                        navigate(`/inventario/productos/editar`);
+                      }}
                     >
                       Ver
                     </Button>
@@ -109,7 +127,7 @@ export default function HistoryProducts() {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(producto.id)}
+                      onClick={() => handleDeleteClick(producto.id ?? 0)}
                       sx={{ ml: 1 }}
                     >
                       Eliminar

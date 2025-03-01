@@ -64,7 +64,6 @@ const suppliersStore: StateCreator<SuppliersState> = (set, get) => ({
       return data;
     } catch (error) {
       console.log(error);
-
       set({ loading: false });
       throw new Error("Error al crear el proveedor");
     }

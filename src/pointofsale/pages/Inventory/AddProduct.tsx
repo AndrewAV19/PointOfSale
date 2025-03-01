@@ -29,12 +29,14 @@ import {
 import { ModalSearchCategories } from "../../modales/ModalSearchCategories";
 import { Supplier } from "../../interfaces/supplier.interface";
 import { ModalSearchSuppliers } from "../../modales/ModalSearchSuppliers";
+import { storeProducts } from "../../../stores/products.store";
 
 const AddProduct: React.FC = () => {
   const [product, setProduct] = useState({
     name: "",
     description: "",
     price: 0,
+    costPrice: 0,
     stock: 0,
     categoryId: 0,
     discount: false,
@@ -95,6 +97,7 @@ const AddProduct: React.FC = () => {
       name: "",
       description: "",
       price: 0,
+      costPrice: 0,
       stock: 0,
       categoryId: 0,
       discount: false,
@@ -115,8 +118,7 @@ const AddProduct: React.FC = () => {
     setOpenSnackbar(false);
   };
 
-  const handleConfirmSale = () => {
-    // Verificar si faltan campos obligatorios
+  const handleConfirmSale = async () => {
     if (
       !product.name ||
       product.price === undefined ||
@@ -127,14 +129,12 @@ const AddProduct: React.FC = () => {
       return;
     }
 
-    // Verificar si el precio es 0
     if (product.price === 0) {
       setSnackbarSeverity("error");
       handleOpenSnackbar("El precio no puede ser 0.");
       return;
     }
 
-    // Verificar si el precio y stock contienen solo números y puntos
     const priceRegex = /^\d+(\.\d{1,2})?$/;
     const stockRegex = /^\d+$/;
 
@@ -150,10 +150,39 @@ const AddProduct: React.FC = () => {
       return;
     }
 
-    // Si todos los campos están correctos
-    setSnackbarSeverity("success");
-    handleOpenSnackbar("Producto agregado correctamente.");
-    console.log("categoria: " + category);
+    try {
+      const validSuppliers = product.suppliers
+        .filter((supplier) => supplier.id !== undefined)
+        .map((supplier) => ({ id: supplier.id as number }));
+
+        const categoryIdAsNumber = !isNaN(Number(category)) ? Number(category) : 0;
+
+      // Crear el producto usando el store
+        await storeProducts.getState().createProduct({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        stock: product.stock,
+        category: { id: categoryIdAsNumber },
+        suppliers: validSuppliers,
+        costPrice: product.costPrice,
+        discount: product.discount ? product.discountPercentage : undefined,
+        taxRate: 0,
+        images: [],
+      });
+
+      // Mostrar mensaje de éxito
+      setSnackbarSeverity("success");
+      handleOpenSnackbar("Producto agregado correctamente.");
+
+      // Limpiar el formulario
+      handleReset();
+    } catch (error) {
+      // Mostrar mensaje de error
+      setSnackbarSeverity("error");
+      handleOpenSnackbar("Error al crear el producto.");
+      console.error(error);
+    }
   };
 
   const handleRemoveSupplier = (supplierId: number) => {
@@ -287,14 +316,13 @@ const AddProduct: React.FC = () => {
           </TableContainer>
         </Box>
 
-        {/* Precio y Stock */}
+        {/* Precio venta y Precio compra */}
         <Box className="flex space-x-4 mb-6">
           <Box className="flex-1">
             <TextField
               fullWidth
-              label="Precio"
+              label="Precio venta"
               name="price"
-              type="number"
               value={product.price}
               onChange={handleChange}
               variant="outlined"
@@ -304,18 +332,28 @@ const AddProduct: React.FC = () => {
           <Box className="flex-1">
             <TextField
               fullWidth
+              label="Precio compra"
+              name="costPrice"
+              value={product.costPrice}
+              onChange={handleChange}
+              variant="outlined"
+              required
+            />
+          </Box>
+        </Box>
+
+        <Box className="flex space-x-4 mb-6">
+          <Box className="flex-1">
+            <TextField
+              fullWidth
               label="Stock"
               name="stock"
-              type="number"
               value={product.stock}
               onChange={handleChange}
               variant="outlined"
             />
           </Box>
-        </Box>
 
-        {/* Categoría y Descuento */}
-        <Box className="flex space-x-4 mb-6">
           <Box className="flex-1">
             <TextField
               label="Código Categoría"
@@ -344,6 +382,10 @@ const AddProduct: React.FC = () => {
               }
             />
           </Box>
+        </Box>
+
+        {/* Categoría y Descuento */}
+        <Box className="flex space-x-4 mb-6">
           <Box className="flex-1 flex flex-col sm:flex-row sm:items-center sm:space-x-4">
             <FormControlLabel
               control={

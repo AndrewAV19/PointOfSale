@@ -8,6 +8,8 @@ import { Supplier } from "../pointofsale/interfaces/supplier.interface";
 import { SuppliersService } from "../services/suppliers.service";
 import { Categories } from "../pointofsale/interfaces/categories.interface";
 import { CategoriesService } from "../services/categories.service";
+import { Product } from "../pointofsale/interfaces/product.interface";
+import { ProductService } from "../services/products.service";
 
 interface DataState {
   selectedUser: Users | null;
@@ -18,11 +20,14 @@ interface DataState {
   setSelectedSupplier: (supplier: Supplier) => void;
   selectedCategory: Categories | null;
   setSelectedCategory: (category: Categories) => void;
+  selectedProduct: Product | null;
+  setSelectedProduct: (product: Product) => void;
   statusRefresh: boolean;
   getUserById: (idUser: number) => Promise<void>;
   getClientById: (idClient: number) => Promise<void>;
   getSupplierById: (idSupplier: number) => Promise<void>;
   getCategoryById: (idCategory: number) => Promise<void>;
+  getProductById: (idProduct: number) => Promise<void>;
 }
 
 
@@ -35,6 +40,8 @@ const storeData: StateCreator<DataState> = (set) => ({
   setSelectedSupplier: (supplier: Supplier) => set(() => ({ selectedSupplier: supplier })),
   selectedCategory: null,
   setSelectedCategory: (category: Categories) => set(() => ({ selectedCategory: category })),
+  selectedProduct: null,
+  setSelectedProduct: (product: Product) => set(() => ({ selectedProduct: product })),
   statusRefresh: false,
  
   getUserById: async (idUser: number) => {
@@ -75,6 +82,17 @@ const storeData: StateCreator<DataState> = (set) => ({
       set(() => ({ statusRefresh: true }));
       const category = await CategoriesService.getCategoryById(idCategory);
       set(() => ({ selectedCategory: category, statusRefresh: false }));
+    } catch (error) {
+      console.error(error);
+      set(() => ({ statusRefresh: false }));
+    }
+  },
+
+  getProductById: async (idProduct: number) => {
+    try {
+      set(() => ({ statusRefresh: true }));
+      const product = await ProductService.getProductById(idProduct);
+      set(() => ({ selectedProduct: product, statusRefresh: false }));
     } catch (error) {
       console.error(error);
       set(() => ({ statusRefresh: false }));

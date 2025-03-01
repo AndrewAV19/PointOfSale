@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   TextField,
   Button,
@@ -57,10 +57,6 @@ const AddUser: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rolesSeleccionados, setRolesSeleccionados] = useState<number[]>([]);
   console.log(setRolesSeleccionados)
-
-  useEffect(() => {
-    resetForm(); 
-  }, []);
 
   const handleConfirm = async () => {
     // Validar campos obligatorios
