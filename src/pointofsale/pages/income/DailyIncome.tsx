@@ -44,6 +44,8 @@ const DailyIncome: React.FC = () => {
       { method: 'Transferencia', amount: 500 + (daysAgo * 50) },
     ];
 
+    console.log(setDailyIncome,setTransactions,setAverageTicket)
+
     return { incomeByHour, recentTransactions, paymentMethods, targetDate };
   };
 

@@ -45,6 +45,8 @@ const YearlyIncome: React.FC = () => {
       { method: 'Transferencia', amount: 300000 + (year % 2020) * 50000 },
     ];
 
+    console.log(setYearlyIncome,setTransactions,setAverageTicket)
+
     return { incomeByMonth, recentTransactions, paymentMethods, targetDate };
   };
 

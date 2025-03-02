@@ -48,6 +48,8 @@ const YearlyExpenses: React.FC = () => {
     return { expensesByMonth, recentTransactions, expenseCategories, targetDate };
   };
 
+  console.log(setYearlyExpenses,setTransactions,setAverageExpense)
+
   // Obtener datos según el año seleccionado
   const { expensesByMonth, recentTransactions, expenseCategories, targetDate } = generateData(selectedYear);
 

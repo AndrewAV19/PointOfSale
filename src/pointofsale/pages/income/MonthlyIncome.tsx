@@ -36,6 +36,9 @@ const MonthlyIncome: React.FC = () => {
       { method: 'Transferencia', amount: 25000 + (month * 500) },
     ];
 
+
+    console.log(setMonthlyIncome,setTransactions,setAverageTicket)
+
     return { incomeByDay, recentTransactions, paymentMethods, targetDate };
   };
 

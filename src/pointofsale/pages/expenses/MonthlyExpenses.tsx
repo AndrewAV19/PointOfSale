@@ -48,6 +48,8 @@ const MonthlyExpenses: React.FC = () => {
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
+  console.log(setMonthlyExpenses,setTransactions,setAverageExpense)
+
   // Lista de años para el selector
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 

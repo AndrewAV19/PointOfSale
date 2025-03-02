@@ -44,6 +44,9 @@ const DailyExpenses: React.FC = () => {
       { category: 'Equipo', amount: 1500 + (daysAgo * 50) },
     ];
 
+
+    console.log(setDailyExpenses,setTransactions,setAverageExpense)
+
     return { expensesByHour, recentTransactions, expenseCategories, targetDate };
   };
 

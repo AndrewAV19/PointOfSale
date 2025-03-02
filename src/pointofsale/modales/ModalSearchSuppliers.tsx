@@ -18,7 +18,6 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { suppliers } from "../mocks/suppliersMock";
 import { storeSuppliers } from "../../stores/suppliers.store";
 
 interface ModalSearchToClientProps {
