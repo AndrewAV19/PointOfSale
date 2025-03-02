@@ -19,6 +19,10 @@ import {
   TableRow,
   TablePagination,
   Avatar,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   AddShoppingCart as AddShoppingCartIcon,
@@ -45,6 +49,9 @@ const EditSalePage: React.FC = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning"
   >("success");
+  const [saleStatus, setSaleStatus] = useState<"pendiente" | "pagada">(
+    "pagada"
+  );
   const [messageSnackbar, setMessageSnackbar] = useState("");
   const [productsList, setProductsList] = useState<any[]>(mockSale.products);
   const [page, setPage] = useState(0);
@@ -76,7 +83,7 @@ const EditSalePage: React.FC = () => {
   const handleProductIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const enteredProductId = e.target.value;
     const selectedProduct = products.find(
-      (p) => p.id.toString() === enteredProductId
+      (p) => p.id?.toString() === enteredProductId
     );
 
     if (selectedProduct) {
@@ -194,32 +201,37 @@ const EditSalePage: React.FC = () => {
 
   // Confirmar edición de la venta
   const handleConfirmEdit = () => {
-    if (amountGiven < calculateTotal()) {
-      setSnackbarSeverity("error");
-      handleOpenSnackbar("Dinero insuficiente.");
-      return;
-    }
-
     if (productsList.length === 0) {
       setSnackbarSeverity("warning");
       handleOpenSnackbar("No hay productos agregados.");
       return;
     }
 
-    setSnackbarSeverity("success");
-    handleOpenSnackbar("Venta Editada Correctamente");
+    if (saleStatus === "pendiente") {
+      setSnackbarSeverity("success");
+      handleOpenSnackbar("Venta editada exitosamente");
+    } else {
+      if (amountGiven < calculateTotal()) {
+        setSnackbarSeverity("error");
+        handleOpenSnackbar("Dinero insuficiente.");
+        return;
+      }
+
+      setSnackbarSeverity("success");
+      handleOpenSnackbar("Venta editada exitosamente");
+    }
   };
 
   // Eliminar la venta
   const handleDeleteSale = () => {
-    navigate(`/ventas/historial`)
+    navigate(`/ventas/historial`);
     setSnackbarSeverity("success");
     handleOpenSnackbar("Venta Eliminada Correctamente");
     handleReset();
   };
 
   const handleGoBack = () => {
-    navigate(-1); 
+    navigate(-1);
   };
 
   useEffect(() => {
@@ -228,8 +240,8 @@ const EditSalePage: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
-       {/* Botón para regresar */}
-       <Box sx={{ marginBottom: 0}}>
+      {/* Botón para regresar */}
+      <Box sx={{ marginBottom: 0 }}>
         <Button
           variant="outlined"
           startIcon={<ArrowBackIcon />}
@@ -332,28 +344,48 @@ const EditSalePage: React.FC = () => {
           </Box>
 
           {/* Cambio */}
-          <Box>
-            <TextField
-              label="Cambio"
-              value={change}
-              disabled
-              sx={{
-                "& .MuiInputBase-root": {
-                  backgroundColor:
-                    change < 0 ? "rgba(255, 0, 0, 0.1)" : "inherit",
-                },
-                "& .MuiInputBase-input": {
-                  color: change < 0 ? "red" : "inherit",
-                },
-              }}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">$</InputAdornment>
-                  ),
-                },
-              }}
-            />
+          <Box display="flex" gap={3}>
+            <Box flex={1}>
+              <FormControl fullWidth>
+                <InputLabel>Estado de la venta</InputLabel>
+                <Select
+                  value={saleStatus}
+                  onChange={(e) =>
+                    setSaleStatus(e.target.value as "pendiente" | "pagada")
+                  }
+                  label="Estado de la venta"
+                >
+                  <MenuItem value="pendiente">Pendiente</MenuItem>
+                  <MenuItem value="pagada">Pagada</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* Cambio */}
+            <Box flex={1}>
+              <TextField
+                label="Cambio"
+                value={change}
+                fullWidth
+                disabled
+                sx={{
+                  "& .MuiInputBase-root": {
+                    backgroundColor:
+                      change < 0 ? "rgba(255, 0, 0, 0.1)" : "inherit",
+                  },
+                  "& .MuiInputBase-input": {
+                    color: change < 0 ? "red" : "inherit",
+                  },
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">$</InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Box>
           </Box>
 
           {/* Botón para agregar el producto */}
@@ -491,9 +523,11 @@ const EditSalePage: React.FC = () => {
               fullWidth
               onClick={handleConfirmEdit}
               disabled={
-                !hasChanges || 
-                productsList.length === 0 || 
-                amountGiven < calculateTotal() 
+                saleStatus === "pagada"
+                  ? productsList.length === 0 ||
+                    amountGiven < calculateTotal() ||
+                    !hasChanges
+                  : productsList.length === 0 || !hasChanges
               }
             >
               Confirmar Edición

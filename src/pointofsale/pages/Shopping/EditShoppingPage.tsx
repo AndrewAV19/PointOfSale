@@ -83,7 +83,7 @@ const EditShoppingPage: React.FC = () => {
   const handleProductIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const enteredProductId = e.target.value;
     const selectedProduct = products.find(
-      (p) => p.id.toString() === enteredProductId
+      (p) => p.id?.toString() === enteredProductId
     );
 
     if (selectedProduct) {
