@@ -21,6 +21,12 @@ import EditClientPage from "../pages/Clients/EditClientPage";
 import HistorySuppliers from "../pages/Suppliers/HistorySuppliers";
 import EditSupplierPage from "../pages/Suppliers/EditSupplierPage";
 import EditCategoryPage from "../pages/Categories/EditCategoryPage";
+import DailyIncome from "../pages/income/DailyIncome";
+import MonthlyIncome from "../pages/income/MonthlyIncome";
+import YearlyIncome from "../pages/income/YearlyIncome";
+import DailyExpenses from "../pages/expenses/DailyExpenses";
+import MonthlyExpenses from "../pages/expenses/MonthlyExpenses";
+import YearlyExpenses from "../pages/expenses/YearlyExpenses";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -53,6 +59,14 @@ const PointOfSaleRoutes = () => {
         <Route path="/usuarios/historial" element={<HistoryUsers />}></Route>
         <Route path="/usuarios/editar" element={<EditUserPage />}></Route>
 
+        <Route path="/ingresos/dia" element={<DailyIncome />}></Route>
+        <Route path="/ingresos/mes" element={<MonthlyIncome />}></Route>
+        <Route path="/ingresos/anio" element={<YearlyIncome />}></Route>
+
+        <Route path="/egresos/dia" element={<DailyExpenses />}></Route>
+        <Route path="/egresos/mes" element={<MonthlyExpenses />}></Route>
+        <Route path="/egresos/anio" element={<YearlyExpenses />}></Route>
+        
         <Route path="/acerca-de" element={<AboutPage />}></Route>
       </Route>
 

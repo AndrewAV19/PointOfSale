@@ -77,8 +77,8 @@ export const navigationMenu = [
     icon: <AttachMoneyIcon />,
     subItems: [
       { text: "Ingresos del Día", path: "/ingresos/dia", icon: <BarChartIcon /> },
-      { text: "Historial de Ingresos", path: "/ingresos/historial", icon: <HistoryIcon /> },
-      { text: "Resumen de Ingresos", path: "/ingresos/resumen", icon: <BarChartIcon /> },
+      { text: "Ingresos por Mes", path: "/ingresos/mes", icon: <BarChartIcon /> },
+      { text: "Ingresos por Año", path: "/ingresos/anio", icon: <BarChartIcon /> },
     ],
   },
   {
@@ -87,8 +87,8 @@ export const navigationMenu = [
     icon: <CreditCardIcon />,
     subItems: [
       { text: "Egresos del Día", path: "/egresos/dia", icon: <BarChartIcon /> },
-      { text: "Historial de Egresos", path: "/egresos/historial", icon: <HistoryIcon /> },
-      { text: "Resumen de Egresos", path: "/egresos/resumen", icon: <BarChartIcon /> },
+      { text: "Egresos por Mes", path: "/egresos/mes", icon: <BarChartIcon /> },
+      { text: "Egresos por Año", path: "/egresos/anio", icon: <BarChartIcon /> },
     ],
   },  
   {
