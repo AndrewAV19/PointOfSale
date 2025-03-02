@@ -51,6 +51,7 @@ export const navigationMenu = [
     subItems: [
       { text: "Agregar Cliente", path: "/clientes/agregar", icon: <AddIcon /> },
       { text: "Historial de Clientes", path: "/clientes/historial", icon: <HistoryIcon /> },
+      { text: "Pagos Pendientes", path: "/clientes/pagos-pendientes", icon: <CreditCardIcon /> },
     ],
   },
   {

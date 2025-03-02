@@ -1,15 +1,14 @@
-import { 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  Typography, 
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
   Box,
-  IconButton
+  IconButton,
 } from "@mui/material";
-import { Delete as DeleteIcon, Close as CloseIcon } from "@mui/icons-material";
-
+import { Close as CloseIcon } from "@mui/icons-material";
 interface ConfirmDialogProps {
   readonly open: boolean;
   readonly onClose: () => void;
@@ -18,7 +17,13 @@ interface ConfirmDialogProps {
   readonly message: string;
 }
 
-export default function ConfirmDialog({ open, onClose, onConfirm, title, message }: ConfirmDialogProps) {
+export default function ConfirmModal({
+  open,
+  onClose,
+  onConfirm,
+  title,
+  message,
+}: ConfirmDialogProps) {
   return (
     <Dialog
       open={open}
@@ -51,12 +56,20 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title, message
             {title}
           </Typography>
         </Box>
-        <IconButton onClick={onClose} size="small" sx={{ color: "text.secondary" }}>
+        <IconButton
+          onClick={onClose}
+          size="small"
+          sx={{ color: "text.secondary" }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
       <DialogContent sx={{ py: 3, px: 3, textAlign: "center" }}>
-        <Typography id="confirm-dialog-description" variant="body1" color="text.secondary">
+        <Typography
+          id="confirm-dialog-description"
+          variant="body1"
+          color="text.secondary"
+        >
           {message}
         </Typography>
       </DialogContent>
@@ -73,7 +86,7 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title, message
         <Button
           onClick={onClose}
           variant="outlined"
-          color="primary"
+          color="error"
           startIcon={<CloseIcon />}
           sx={{
             px: 4,
@@ -88,8 +101,7 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title, message
         <Button
           onClick={onConfirm}
           variant="contained"
-          color="error"
-          startIcon={<DeleteIcon />}
+          color="success"
           sx={{
             px: 4,
             py: 1,
@@ -99,7 +111,7 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title, message
             boxShadow: "none",
           }}
         >
-          Eliminar
+          Confirmar
         </Button>
       </DialogActions>
     </Dialog>
