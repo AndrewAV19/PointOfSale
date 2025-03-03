@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -10,6 +10,8 @@ import {
   Button,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 import { storeSales } from "../../../stores/sales.store";
 import { dataStore } from "../../../stores/generalData.store";
@@ -22,6 +24,7 @@ export default function HistorySales() {
   const [ventas, setVentas] = useState(listSales);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
+  const pdfRef = useRef(null);
 
   useEffect(() => {
     getSales();
@@ -30,8 +33,6 @@ export default function HistorySales() {
   useEffect(() => {
     setVentas(listSales);
   }, [listSales]);
-
-  console.log(setSelectedSaleId);
 
   const filteredVentas = ventas.filter((venta) =>
     venta.client?.name
@@ -67,8 +68,23 @@ export default function HistorySales() {
     }
   };
 
+  // Función para exportar la vista a PDF
+  const exportToPDF = () => {
+    const input = pdfRef.current;
+    if (!input) return;
+
+    html2canvas(input, { scale: 2 }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 10, imgWidth, imgHeight);
+      pdf.save("Historial_de_Ventas.pdf");
+    });
+  };
+
   return (
-    <div className="p-6 mx-auto bg-white shadow-lg rounded-lg">
+    <div className="p-6 mx-auto bg-white shadow-lg rounded-lg"  ref={pdfRef}>
       <h2 className="text-2xl font-bold mb-4">Historial de Ventas</h2>
 
       <div className="flex items-center gap-2 mb-4">
@@ -79,7 +95,12 @@ export default function HistorySales() {
           className="border px-2 py-1 rounded w-full"
           startAdornment={<Search className="text-gray-500" />}
         />
-        <Button variant="contained" color="primary" startIcon={<Download />}>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<Download />}
+          onClick={exportToPDF}
+        >
           Exportar
         </Button>
       </div>
@@ -116,7 +137,6 @@ export default function HistorySales() {
                 <TableRow key={venta.id} className="hover:bg-gray-100">
                   <TableCell>{venta.id}</TableCell>
                   <TableCell>{venta.client?.name ?? ""}</TableCell>
-
                   <TableCell>{venta.total}</TableCell>
                   <TableCell>
                     {venta.createdAt
@@ -131,7 +151,6 @@ export default function HistorySales() {
                         })
                       : "Fecha no disponible"}
                   </TableCell>
-
                   <TableCell>
                     <span
                       className={`px-2 py-1 text-xs font-semibold rounded-full ${getEstadoClase(
@@ -142,7 +161,6 @@ export default function HistorySales() {
                         venta.state.slice(1)}
                     </span>
                   </TableCell>
-
                   <TableCell>
                     <Button
                       variant="outlined"
@@ -171,6 +189,7 @@ export default function HistorySales() {
           </TableBody>
         </Table>
       </div>
+
       {/* Modal de Confirmación */}
       <ConfirmDialog
         open={openDialog}

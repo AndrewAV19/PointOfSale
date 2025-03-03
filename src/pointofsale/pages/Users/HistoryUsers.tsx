@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -10,7 +10,8 @@ import {
   Button,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 import { storeUsers } from "../../../stores/users.store";
 import { dataStore } from "../../../stores/generalData.store";
@@ -23,6 +24,7 @@ export default function HistoryUsers() {
   const [users, setUsers] = useState(listUsers);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const pdfRef = useRef(null);
 
   useEffect(() => {
     getUsers();
@@ -53,8 +55,23 @@ export default function HistoryUsers() {
     }
   };
 
+  // Función para exportar la vista a PDF
+  const exportToPDF = () => {
+    const input = pdfRef.current;
+    if (!input) return;
+
+    html2canvas(input, { scale: 2 }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 10, imgWidth, imgHeight);
+      pdf.save("Historial_de_Usuarios.pdf");
+    });
+  };
+
   return (
-    <div className="p-6 mx-auto bg-white shadow-lg rounded-lg">
+    <div className="p-6 mx-auto bg-white shadow-lg rounded-lg" ref={pdfRef}>
       <h2 className="text-2xl font-bold mb-4">Historial de Usuarios</h2>
 
       <div className="flex items-center gap-2 mb-4">
@@ -65,7 +82,12 @@ export default function HistoryUsers() {
           className="border px-2 py-1 rounded w-full"
           startAdornment={<Search className="text-gray-500" />}
         />
-        <Button variant="contained" color="primary" startIcon={<Download />}>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<Download />}
+          onClick={exportToPDF}
+        >
           Exportar
         </Button>
       </div>
