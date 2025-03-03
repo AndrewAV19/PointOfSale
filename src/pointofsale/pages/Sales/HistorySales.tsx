@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -10,43 +10,61 @@ import {
   Button,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { ventas as initialSale } from "../../mocks/historySalesMock";
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
+import { storeSales } from "../../../stores/sales.store";
+import { dataStore } from "../../../stores/generalData.store";
 
 export default function HistorySales() {
+  const { listSales, getSales, deleteSale } = storeSales();
+  const { getSaleById } = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const [ventas, setVentas] = useState(initialSale);
+  const [ventas, setVentas] = useState(listSales);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedSaleId, setSelectedSaleId] = useState<string | number | null>(
-    null
-  );
+  const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
+
+  useEffect(() => {
+    getSales();
+  }, [getSales]);
+
+  useEffect(() => {
+    setVentas(listSales);
+  }, [listSales]);
 
   console.log(setSelectedSaleId);
 
   const filteredVentas = ventas.filter((venta) =>
-    venta.cliente.toLowerCase().includes(search.toLowerCase())
+    venta.client?.name
+      ? venta.client.name.toLowerCase().includes(search.toLowerCase())
+      : search === ""
   );
 
   const getEstadoClase = (estado: string) => {
     switch (estado) {
-      case "Completado":
+      case "pagada":
         return "bg-green-200 text-green-800";
-      case "Pendiente":
+      case "pendiente":
         return "bg-yellow-200 text-yellow-800";
       default:
         return "bg-red-200 text-red-800";
     }
   };
 
-  const handleDeleteClick = (id: string | number) => {
+  const handleDeleteClick = (id: number) => {
     setSelectedSaleId(id);
     setOpenDialog(true);
   };
 
-  const handleConfirmDelete = () => {
-    setVentas(ventas.filter((p) => p.id !== selectedSaleId));
-    setOpenDialog(false);
+  const handleConfirmDelete = async () => {
+    if (selectedSaleId) {
+      try {
+        await deleteSale(selectedSaleId);
+        setVentas(ventas.filter((venta) => venta.id !== selectedSaleId));
+        setOpenDialog(false);
+      } catch (error) {
+        console.error("Error al eliminar esta venta:", error);
+      }
+    }
   };
 
   return (
@@ -97,24 +115,43 @@ export default function HistorySales() {
               filteredVentas.map((venta) => (
                 <TableRow key={venta.id} className="hover:bg-gray-100">
                   <TableCell>{venta.id}</TableCell>
-                  <TableCell>{venta.cliente}</TableCell>
+                  <TableCell>{venta.client?.name ?? ""}</TableCell>
+
                   <TableCell>{venta.total}</TableCell>
-                  <TableCell>{venta.fecha}</TableCell>
+                  <TableCell>
+                    {venta.createdAt
+                      ? new Date(venta.createdAt).toLocaleString("es-ES", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })
+                      : "Fecha no disponible"}
+                  </TableCell>
+
                   <TableCell>
                     <span
                       className={`px-2 py-1 text-xs font-semibold rounded-full ${getEstadoClase(
-                        venta.estado
+                        venta.state
                       )}`}
                     >
-                      {venta.estado}
+                      {venta.state.charAt(0).toUpperCase() +
+                        venta.state.slice(1)}
                     </span>
                   </TableCell>
+
                   <TableCell>
                     <Button
                       variant="outlined"
                       startIcon={<Visibility />}
                       size="small"
-                      onClick={() => navigate(`/ventas/editar`)}
+                      onClick={async () => {
+                        await getSaleById(venta.id ?? 0);
+                        navigate(`/ventas/editar`);
+                      }}
                     >
                       Ver
                     </Button>
@@ -122,7 +159,7 @@ export default function HistorySales() {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(venta.id)}
+                      onClick={() => handleDeleteClick(venta.id ?? 0)}
                       sx={{ ml: 1 }}
                     >
                       Eliminar

@@ -10,6 +10,8 @@ import { Categories } from "../pointofsale/interfaces/categories.interface";
 import { CategoriesService } from "../services/categories.service";
 import { Product } from "../pointofsale/interfaces/product.interface";
 import { ProductService } from "../services/products.service";
+import { Sale } from "../pointofsale/interfaces/sales.interface";
+import { SaleService } from "../services/sales.service";
 
 interface DataState {
   selectedUser: Users | null;
@@ -22,12 +24,15 @@ interface DataState {
   setSelectedCategory: (category: Categories) => void;
   selectedProduct: Product | null;
   setSelectedProduct: (product: Product) => void;
+  selectedSale: Sale | null;
+  setSelectedSale: (sale: Sale) => void;
   statusRefresh: boolean;
   getUserById: (idUser: number) => Promise<void>;
   getClientById: (idClient: number) => Promise<void>;
   getSupplierById: (idSupplier: number) => Promise<void>;
   getCategoryById: (idCategory: number) => Promise<void>;
   getProductById: (idProduct: number) => Promise<void>;
+  getSaleById: (idProduct: number) => Promise<void>;
 }
 
 
@@ -42,6 +47,8 @@ const storeData: StateCreator<DataState> = (set) => ({
   setSelectedCategory: (category: Categories) => set(() => ({ selectedCategory: category })),
   selectedProduct: null,
   setSelectedProduct: (product: Product) => set(() => ({ selectedProduct: product })),
+  selectedSale: null,
+  setSelectedSale: (sale: Sale) => set(() => ({ selectedSale: sale })),
   statusRefresh: false,
  
   getUserById: async (idUser: number) => {
@@ -93,6 +100,17 @@ const storeData: StateCreator<DataState> = (set) => ({
       set(() => ({ statusRefresh: true }));
       const product = await ProductService.getProductById(idProduct);
       set(() => ({ selectedProduct: product, statusRefresh: false }));
+    } catch (error) {
+      console.error(error);
+      set(() => ({ statusRefresh: false }));
+    }
+  },
+
+  getSaleById: async (idSale: number) => {
+    try {
+      set(() => ({ statusRefresh: true }));
+      const sale = await SaleService.getSaleById(idSale);
+      set(() => ({ selectedSale: sale, statusRefresh: false }));
     } catch (error) {
       console.error(error);
       set(() => ({ statusRefresh: false }));
