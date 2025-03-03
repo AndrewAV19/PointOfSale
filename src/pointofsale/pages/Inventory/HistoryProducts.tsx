@@ -12,27 +12,27 @@ import {
 import { Search, Visibility, Download } from "@mui/icons-material";
 
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
-//import { products as initialProducts } from "../../mocks/historyProductsMock";
 import { storeProducts } from "../../../stores/products.store";
 import { dataStore } from "../../../stores/generalData.store";
 
-
 export default function HistoryProducts() {
-    const { listProducts, getProducts, deleteProduct } = storeProducts();
-    const { getProductById} = dataStore();
+  const { listProducts, getProducts, deleteProduct } = storeProducts();
+  const { getProductById } = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const [products, setProducts] = useState(listProducts);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
 
-   useEffect(() => {
-     getProducts();
-   }, [getProducts]);
- 
-   useEffect(() => {
-     setProducts(listProducts);
-   }, [listProducts]);
+  useEffect(() => {
+    getProducts();
+  }, [getProducts]);
+
+  useEffect(() => {
+    setProducts(listProducts);
+  }, [listProducts]);
 
   // Filtrar productos según la búsqueda
   const filteredProducts = products.filter((venta) =>
@@ -49,7 +49,9 @@ export default function HistoryProducts() {
     if (selectedProductId) {
       try {
         await deleteProduct(selectedProductId);
-        setProducts(products.filter((product) => product.id !== selectedProductId));
+        setProducts(
+          products.filter((product) => product.id !== selectedProductId)
+        );
         setOpenDialog(false);
       } catch (error) {
         console.error("Error al eliminar el producto:", error);

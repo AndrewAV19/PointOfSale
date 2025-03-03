@@ -29,6 +29,7 @@ import MonthlyExpenses from "../pages/expenses/MonthlyExpenses";
 import YearlyExpenses from "../pages/expenses/YearlyExpenses";
 import PendingPaymentsClientsHistory from "../pages/Clients/PendingPaymentsClientsHistory";
 import PendingPaymentsClient from "../pages/Clients/PendingPaymentsClient";
+import EditProductPage from "../pages/Inventory/EditProductPage";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -44,6 +45,7 @@ const PointOfSaleRoutes = () => {
 
         <Route path="/inventario/productos/agregar" element={<AddProduct />}></Route>
         <Route path="/inventario/productos/historial" element={<HistoryProducts />}></Route>
+        <Route path="/inventario/productos/editar" element={<EditProductPage />}></Route>
 
         <Route path="/inventario/categorias/agregar" element={<AddCategory />}></Route>
         <Route path="/inventario/categorias/historial" element={<HistoryCategories />}></Route>
