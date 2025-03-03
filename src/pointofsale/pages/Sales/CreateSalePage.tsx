@@ -35,6 +35,8 @@ import { ModalSearchClients } from "../../modales/ModalSearchClients";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 import { products } from "../../mocks/productMock";
 import { Product } from "../../interfaces/product.interface";
+import { SaleRequest } from "../../interfaces/sales.interface";
+import { storeSales } from "../../../stores/sales.store";
 
 const CreateSalePage: React.FC = () => {
   const [client, setClient] = useState("");
@@ -196,25 +198,36 @@ const CreateSalePage: React.FC = () => {
   };
 
   // Confirmar venta
-  const handleConfirmSale = () => {
+  const handleConfirmSale = async () => {
     if (productsList.length === 0) {
       setSnackbarSeverity("warning");
       handleOpenSnackbar("No hay productos agregados.");
       return;
     }
-
-    if (saleStatus === "pendiente") {
+  
+    try {
+      const saleData: SaleRequest = {
+        client: client ? { id: parseInt(client, 10) } : undefined,
+        saleProducts: productsList.map((product) => ({
+          product: { id: product.id },
+          quantity: product.quantity,
+        })),
+        amount: amountGiven,
+        state: saleStatus,
+        total: calculateTotal(),
+      };
+  
+      await storeSales.getState().createSale(saleData);
+  
       setSnackbarSeverity("success");
-      handleOpenSnackbar("Venta confirmada");
-    } else {
-      if (amountGiven < calculateTotal()) {
-        setSnackbarSeverity("error");
-        handleOpenSnackbar("Dinero insuficiente.");
-        return;
-      }
-
-      setSnackbarSeverity("success");
-      handleOpenSnackbar("Venta Confirmada");
+      handleOpenSnackbar("Venta creada exitosamente");
+  
+      // Reiniciar el formulario
+      handleReset();
+    } catch (error) {
+      console.error(error);
+      setSnackbarSeverity("error");
+      handleOpenSnackbar("Error al crear la venta");
     }
   };
 
