@@ -93,9 +93,15 @@ const EditSalePage: React.FC = () => {
   };
 
   const handleAmountGivenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const amount = parseFloat(e.target.value);
+    let amount = parseFloat(e.target.value);
+
+    if (isNaN(amount)) {
+      amount = 0;
+    }
+
     setAmountGiven(amount);
     setChange(amount - calculateTotal());
+    setHasChanges(true);
   };
 
   const handleProductIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,7 +221,9 @@ const EditSalePage: React.FC = () => {
     setHasChanges(true);
   };
 
-  const handleSaleStatusChange = (event: SelectChangeEvent<"pendiente" | "pagada">) => {
+  const handleSaleStatusChange = (
+    event: SelectChangeEvent<"pendiente" | "pagada">
+  ) => {
     setSaleStatus(event.target.value as "pendiente" | "pagada");
     setHasChanges(true);
   };
@@ -287,12 +295,6 @@ const EditSalePage: React.FC = () => {
   useEffect(() => {
     setChange(amountGiven - calculateTotal());
   }, [productsList, amountGiven]);
-
-  useEffect(() => {
-    const total = calculateTotal();
-    const isValid = !isNaN(amountGiven) && amountGiven >= total;
-    setHasChanges(isValid);
-  }, [amountGiven, productsList]);
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
@@ -406,7 +408,7 @@ const EditSalePage: React.FC = () => {
                 <InputLabel>Estado de la venta</InputLabel>
                 <Select
                   value={saleStatus}
-                  onChange={handleSaleStatusChange }
+                  onChange={handleSaleStatusChange}
                   label="Estado de la venta"
                 >
                   <MenuItem value="pendiente">Pendiente</MenuItem>
@@ -577,9 +579,12 @@ const EditSalePage: React.FC = () => {
             disabled={
               saleStatus === "pagada"
                 ? productsList.length === 0 ||
+                  amountGiven <= 0 || // Cambiado a <= 0 para incluir valores negativos
                   amountGiven < calculateTotal() ||
                   !hasChanges
-                : productsList.length === 0 || !hasChanges
+                : productsList.length === 0 ||
+                  amountGiven <= 0 || // Cambiado a <= 0 para incluir valores negativos
+                  !hasChanges
             }
           >
             Actualizar Venta
