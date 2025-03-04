@@ -284,7 +284,7 @@ const EditSalePage: React.FC = () => {
       await deleteSale(selectedSale?.id ?? 0);
       navigate(`/ventas/historial`);
     } catch (error) {
-      console.error("Error al eliminar el producto:", error);
+      console.error("Error al eliminar la venta:", error);
     }
   };
 
@@ -579,11 +579,11 @@ const EditSalePage: React.FC = () => {
             disabled={
               saleStatus === "pagada"
                 ? productsList.length === 0 ||
-                  amountGiven <= 0 || // Cambiado a <= 0 para incluir valores negativos
+                  amountGiven <= 0 ||
                   amountGiven < calculateTotal() ||
                   !hasChanges
                 : productsList.length === 0 ||
-                  amountGiven <= 0 || // Cambiado a <= 0 para incluir valores negativos
+                  amountGiven <= 0 ||
                   !hasChanges
             }
           >

@@ -26,53 +26,61 @@ import {
   Search as SearchIcon,
   Save as SaveIcon,
   ArrowBack as ArrowBackIcon,
+  Clear as ClearIcon,
 } from "@mui/icons-material";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 import { products } from "../../mocks/productMock";
 import { Product } from "../../interfaces/product.interface";
-import { mockPurchase } from "../../mocks/shoppingMock";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { dataStore } from "../../../stores/generalData.store";
+import { storeShoppings } from "../../../stores/shopping.store";
+import {
+  ShoppingProduct,
+  ShoppingProductRequest,
+  ShoppingRequest,
+} from "../../interfaces/shopping.interface";
+import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
 const EditShoppingPage: React.FC = () => {
+  const { selectedShopping } = dataStore();
+  const { deleteShopping, updateShopping } = storeShoppings();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [supplier, setSupplier] = useState(mockPurchase.supplier.id);
+  const [supplier, setSupplier] = useState(selectedShopping?.supplier?.id);
   const [openModalProducts, setOpenModalProducts] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [amountGiven, setAmountGiven] = useState(mockPurchase.amountGiven);
+  const [amountGiven, setAmountGiven] = useState(selectedShopping?.amount ?? 0);
   const [change, setChange] = useState(0);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning"
   >("success");
-  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
   const [messageSnackbar, setMessageSnackbar] = useState("");
-  const [productsList, setProductsList] = useState<any[]>(mockPurchase.products);
+  const [productsList, setProductsList] = useState<ShoppingProduct[]>(
+    selectedShopping?.shoppingProducts || []
+  );
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [hasChanges, setHasChanges] = useState(false);
 
-  useEffect(() => {
-    // Verifica si el mensaje debe aparecer luego de la navegación
-    if (location.pathname === "/compras/historial" && messageSnackbar) {
-      setOpenSnackbar(true);
-    }
-  }, [location, messageSnackbar]);
-
   // Función para calcular el total de la compra
   const calculateTotal = () => {
-    return productsList.reduce((acc, product) => acc + product.total, 0);
+    return productsList.reduce(
+      (acc, shoppingProduct) =>
+        acc + shoppingProduct.product.costPrice * shoppingProduct.quantity,
+      0
+    );
   };
-
-  // Calcular el cambio automáticamente
-  useEffect(() => {
-    const total = calculateTotal();
-    setChange(amountGiven - total);
-  }, [amountGiven, productsList]);
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuantity = parseInt(e.target.value, 10);
     setQuantity(newQuantity);
+
+    // Recalcular el cambio cuando cambie la cantidad
+    if (product) {
+      setChange(amountGiven - newQuantity * product.price);
+    }
   };
 
   const handleAmountGivenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,41 +121,39 @@ const EditShoppingPage: React.FC = () => {
               ? {
                   ...p,
                   quantity: p.quantity + quantity,
-                  total: (p.quantity + quantity) * p.costPrice,
                 }
               : p
           )
         );
       } else {
-        const newProduct = {
-          id: product.id,
-          name: product.name,
+        const newShoppingProduct: ShoppingProduct = {
+          product,
           quantity,
-          costPrice: product.costPrice,
-          total: product.costPrice * quantity,
         };
-        setProductsList((prevList) => [...prevList, newProduct]);
+        setProductsList((prevList) => [...prevList, newShoppingProduct]);
       }
 
       setProduct(null);
       setQuantity(1);
+      setChange(amountGiven - calculateTotal());
       setHasChanges(true);
     } else {
       console.error("No se ha seleccionado ningún producto.");
     }
   };
 
-  const handleDeleteProduct = (productId: string) => {
+  const handleDeleteProduct = (productId: number) => {
     setProductsList((prevList) => prevList.filter((p) => p.id !== productId));
     setHasChanges(true);
   };
 
   const handleReset = () => {
-    setSupplier(mockPurchase.supplier.id);
+    setSupplier(selectedShopping?.supplier?.id);
     setProduct(null);
     setQuantity(1);
-    setAmountGiven(mockPurchase.amountGiven);
-    setProductsList(mockPurchase.products);
+    setAmountGiven(selectedShopping?.amount ?? 0);
+    setChange(0);
+    setProductsList(selectedShopping?.shoppingProducts ?? []);
   };
 
   const handleOpenSnackbar = (message: string) => {
@@ -174,79 +180,112 @@ const EditShoppingPage: React.FC = () => {
   };
 
   // Función para aumentar la cantidad
-  const handleIncreaseQuantity = (productId: string) => {
+  const handleIncreaseQuantity = (productId: number) => {
     setProductsList((prevList) =>
-      prevList.map((product) =>
-        product.id === productId
+      prevList.map((shoppingProduct) =>
+        shoppingProduct.product.id === productId
           ? {
-              ...product,
-              quantity: product.quantity + 1,
-              total: (product.quantity + 1) * product.costPrice,
+              ...shoppingProduct,
+              quantity: shoppingProduct.quantity + 1,
             }
-          : product
+          : shoppingProduct
       )
     );
     setHasChanges(true);
   };
 
-  const handleDecreaseQuantity = (productId: string) => {
+  const handleDecreaseQuantity = (productId: number) => {
     setProductsList((prevList) =>
-      prevList.map((product) =>
-        product.id === productId && product.quantity > 1
+      prevList.map((shoppingProduct) =>
+        shoppingProduct.product.id === productId && shoppingProduct.quantity > 1
           ? {
-              ...product,
-              quantity: product.quantity - 1,
-              total: (product.quantity - 1) * product.costPrice,
+              ...shoppingProduct,
+              quantity: shoppingProduct.quantity - 1,
             }
-          : product
+          : shoppingProduct
       )
     );
     setHasChanges(true);
   };
 
   // Confirmar edición de la compra
-  const handleConfirmEdit = () => {
-    if (amountGiven < calculateTotal()) {
-      setSnackbarSeverity("error");
-      handleOpenSnackbar("Dinero insuficiente.");
-      return;
-    }
-
+  const handleConfirmEdit = async () => {
     if (productsList.length === 0) {
       setSnackbarSeverity("warning");
       handleOpenSnackbar("No hay productos agregados.");
       return;
     }
 
-    setSnackbarSeverity("success");
-    handleOpenSnackbar("Compra Editada Correctamente");
+    try {
+      const shoppingProductsRequest: ShoppingProductRequest[] =
+        productsList.map((item) => {
+          if (!item.product.id) {
+            throw new Error("El ID del producto es requerido.");
+          }
+          return {
+            id: item.id,
+            product: {
+              id: item.product.id,
+            },
+            quantity: item.quantity,
+            sale_id: selectedShopping?.id ?? 0,
+          };
+        });
+
+      const updatedShoppingData: Partial<ShoppingRequest> = {
+        supplier: supplier ? { id: supplier } : undefined,
+        shoppingProducts: shoppingProductsRequest,
+        amount: amountGiven,
+        total: calculateTotal(),
+      };
+
+      await updateShopping(selectedShopping?.id ?? 0, updatedShoppingData);
+
+      setSnackbarSeverity("success");
+      handleOpenSnackbar("Compra editada exitosamente");
+
+      setHasChanges(false);
+    } catch (error) {
+      console.error(error);
+      setSnackbarSeverity("error");
+      handleOpenSnackbar("Error al actualizar la compra");
+    }
   };
 
   // Eliminar la compra
-  const handleDeletePurchase = () => {
-    navigate(`/compras/historial`)
-    setSnackbarSeverity("success");
-    handleOpenSnackbar("Compra Eliminada Correctamente");
-    handleReset();
+  const handleDeleteClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteShopping(selectedShopping?.id ?? 0);
+      navigate(`/compras/historial`);
+    } catch (error) {
+      console.error("Error al eliminar la compra:", error);
+    }
   };
 
   const handleGoBack = () => {
-    navigate(-1); 
+    navigate(-1);
   };
 
+  useEffect(() => {
+    setChange(amountGiven - calculateTotal());
+  }, [productsList, amountGiven]);
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
-        {/* Botón para regresar */}
-             <Box sx={{ marginBottom: 0}}>
-              <Button
-                variant="outlined"
-                startIcon={<ArrowBackIcon />}
-                onClick={handleGoBack}
-              >
-                Regresar
-              </Button>
-            </Box>
+      {/* Botón para regresar */}
+      <Box sx={{ marginBottom: 0 }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={handleGoBack}
+        >
+          Regresar
+        </Button>
+      </Box>
       <Typography variant="h4" align="center" gutterBottom>
         Editar Compra
       </Typography>
@@ -404,15 +443,20 @@ const EditShoppingPage: React.FC = () => {
               {productsList
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((product) => (
-                  <TableRow key={product.id}>
+                  <TableRow key={product.product.id}>
                     <TableCell>
-                      <Avatar alt={product.name} src={product.image} />
+                      <Avatar
+                        alt={product.product.name}
+                        src={product.product.images?.[0]}
+                      />
                     </TableCell>
-                    <TableCell>{product.name}</TableCell>
+                    <TableCell>{product.product.name}</TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", alignItems: "center" }}>
                         <IconButton
-                          onClick={() => handleDecreaseQuantity(product.id)}
+                          onClick={() =>
+                            handleDecreaseQuantity(product.product.id!)
+                          }
                         >
                           -
                         </IconButton>
@@ -420,18 +464,22 @@ const EditShoppingPage: React.FC = () => {
                           {product.quantity}
                         </Typography>
                         <IconButton
-                          onClick={() => handleIncreaseQuantity(product.id)}
+                          onClick={() =>
+                            handleIncreaseQuantity(product.product.id!)
+                          }
                         >
                           +
                         </IconButton>
                       </Box>
                     </TableCell>
-                    <TableCell>${product.costPrice}</TableCell>{" "}
-                    <TableCell>${product.total}</TableCell>
+                    <TableCell>${product.product.costPrice}</TableCell>{" "}
+                    <TableCell>
+                      ${product.product.costPrice * product.quantity}
+                    </TableCell>
                     <TableCell>
                       <IconButton
                         color="error"
-                        onClick={() => handleDeleteProduct(product.id)}
+                        onClick={() => handleDeleteProduct(product.product.id!)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -465,7 +513,7 @@ const EditShoppingPage: React.FC = () => {
           <Box>
             <TextField
               label="Total"
-              value={calculateTotal().toFixed(2)} // Mostrar el total con 2 decimales
+              value={calculateTotal().toFixed(2)}
               fullWidth
               disabled
               slotProps={{
@@ -477,58 +525,62 @@ const EditShoppingPage: React.FC = () => {
               }}
             />
           </Box>
+        </Box>
 
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            gap={2}
-            sx={{ marginTop: 3 }}
+        {/* Botones*/}
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<SaveIcon />}
+            type="submit"
+            onClick={handleConfirmEdit}
+            disabled={
+              !hasChanges ||
+              productsList.length === 0 ||
+              amountGiven < calculateTotal()
+            }
           >
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "green",
-                "&:hover": { backgroundColor: "darkgreen" },
-                color: "white",
-                fontWeight: "bold",
-                textTransform: "none",
-                boxShadow: 2,
-                padding: "10px 20px",
-                borderRadius: "8px",
-                transition: "background-color 0.3s ease",
-              }}
-              startIcon={<SaveIcon />}
-              fullWidth
-              onClick={handleConfirmEdit}
-              disabled={
-                !hasChanges ||
-                productsList.length === 0 || 
-                amountGiven < calculateTotal() 
-              }
-            >
-              Confirmar Edición
-            </Button>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "error.main",
-                "&:hover": { backgroundColor: "darkred" },
-                color: "white",
-                fontWeight: "bold",
-                textTransform: "none",
-                boxShadow: 2,
-                padding: "10px 20px",
-                borderRadius: "8px",
-                transition: "background-color 0.3s ease",
-              }}
-              color="error"
-              startIcon={<DeleteIcon />}
-              fullWidth
-              onClick={handleDeletePurchase}
-            >
-              Eliminar Compra
-            </Button>
-          </Box>
+            Actualizar Compra
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            sx={{
+              borderRadius: 2,
+              padding: "10px 20px",
+              fontWeight: "bold",
+              borderColor: "#d32f2f",
+              "&:hover": {
+                borderColor: "#b71c1c",
+                backgroundColor: "#ffebee",
+              },
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+            onClick={handleDeleteClick}
+          >
+            Eliminar Compra
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<ClearIcon />}
+            onClick={handleReset}
+            sx={{
+              borderRadius: 2,
+              padding: "10px 20px",
+              fontWeight: "bold",
+              borderColor: "#d32f2f",
+              "&:hover": {
+                borderColor: "#b71c1c",
+                backgroundColor: "#ffebee",
+              },
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            Limpiar Campos
+          </Button>
         </Box>
       </Paper>
 
@@ -556,6 +608,13 @@ const EditShoppingPage: React.FC = () => {
           {messageSnackbar}
         </Alert>
       </Snackbar>
+      <ConfirmDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Eliminación"
+        message="¿Estás seguro de que deseas eliminar esta compra?"
+      />
     </Container>
   );
 };
