@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Box,
@@ -14,50 +14,31 @@ import {
   Alert,
   TextField,
   InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  IconButton,
+  Card,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
-  CheckCircle as CheckCircleIcon,
-  Payment as PaymentIcon,
   Search as SearchIcon,
-  Cancel as CancelIcon,
-  Done as DoneIcon,
+  Remove as RemoveIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router";
 import { useSnackbar } from "../../../hooks/useSnackbar";
 import { dataStore } from "../../../stores/generalData.store";
-import ConfirmModal from "../../../components/ConfirmModal";
-
-// Datos de ejemplo (simulación de productos pendientes)
-const pendingProducts = [
-  { id: 1, name: "Producto A", amount: 100.0, paid: 0 },
-  { id: 2, name: "Producto B", amount: 200.0, paid: 0 },
-  { id: 3, name: "Producto C", amount: 150.0, paid: 100 },
-];
+import ConfirmLiquidarModal from "../../modales/ModalConfirmLiquidar";
 
 const PendingPaymentsClient: React.FC = () => {
+  const { selectedClient, clientDebts } = dataStore();
   const navigate = useNavigate();
-  const [products, setProducts] = useState(pendingProducts);
+  const [payments, setPayments] = useState(clientDebts);
   const [search, setSearch] = useState("");
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(
-    null
-  );
-  const [openAbonarModal, setOpenAbonarModal] = useState(false);
-  const [abonoAmount, setAbonoAmount] = useState(0);
-  const [currentProduct, setCurrentProduct] = useState<{
-    id: number;
-    name: string;
-    amount: number;
-    paid: number;
-  } | null>(null);
   const [openLiquidarModal, setOpenLiquidarModal] = useState(false);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [remainingBalance, setRemainingBalance] = useState(0);
 
-  const { selectedClient } = dataStore();
   const {
     openSnackbar,
     snackbarSeverity,
@@ -66,69 +47,27 @@ const PendingPaymentsClient: React.FC = () => {
     closeSnackbar,
   } = useSnackbar();
 
-  // Filtrar productos por nombre
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    const total = payments.reduce(
+      (sum, payment) => sum + payment.totalAmount,
+      0
+    );
+    const paid = payments.reduce((sum, payment) => sum + payment.paidAmount, 0);
+    const remaining = total - paid;
+
+    setTotalAmount(total);
+    setPaidAmount(paid);
+    setRemainingBalance(remaining);
+  }, [payments]);
+
+  // Filtrar productos por nombre del producto
+  const filteredProducts = payments.flatMap((payment) =>
+    payment.products
+      .filter((product) =>
+        product.name.toLowerCase().includes(search.toLowerCase())
+      )
+      .map((product) => ({ ...product, client: payment.client }))
   );
-
-  // Calcular el total y el faltante a pagar
-  const totalAmount = products.reduce(
-    (sum, product) => sum + product.amount,
-    0
-  );
-  const totalPaid = products.reduce((sum, product) => sum + product.paid, 0);
-  const totalRemaining = totalAmount - totalPaid;
-
-  // Abrir modal de abono
-  const handleOpenAbonarModal = (product: {
-    id: number;
-    name: string;
-    amount: number;
-    paid: number;
-  }) => {
-    setCurrentProduct(product);
-    setOpenAbonarModal(true);
-  };
-
-  // Cerrar modal de abono
-  const handleCloseAbonarModal = () => {
-    setOpenAbonarModal(false);
-    setAbonoAmount(0);
-    setCurrentProduct(null);
-  };
-
-  // Manejar el abono
-  const handleAbonar = () => {
-    if (currentProduct && abonoAmount > 0) {
-      const updatedProducts = products.map((product) =>
-        product.id === currentProduct.id
-          ? { ...product, paid: product.paid + abonoAmount }
-          : product
-      );
-      setProducts(updatedProducts);
-      showSnackbar("success", "Abono registrado correctamente.");
-      handleCloseAbonarModal();
-    } else {
-      showSnackbar("error", "Ingresa un monto válido.");
-    }
-  };
-
-  // Manejar la marca de cuenta saldada
-  const handleMarkAsSettled = (id: number) => {
-    setSelectedProductId(id);
-    setOpenDialog(true);
-  };
-
-  // Confirmar la marca de cuenta saldada
-  const handleConfirmSettled = () => {
-    if (selectedProductId) {
-      setProducts((prevProducts) =>
-        prevProducts.filter((product) => product.id !== selectedProductId)
-      );
-      showSnackbar("success", "Cuenta marcada como saldada.");
-      setOpenDialog(false);
-    }
-  };
 
   // Regresar a la página anterior
   const handleGoBack = () => {
@@ -147,13 +86,86 @@ const PendingPaymentsClient: React.FC = () => {
 
   // Manejar la liquidación de la cuenta completa
   const handleConfirmLiquidarCuenta = () => {
-    const updatedProducts = products.map((product) => ({
-      ...product,
-      paid: product.amount,
-    }));
-    setProducts(updatedProducts);
+    setPayments([]);
+
+    setTotalAmount(0);
+    setPaidAmount(0);
+    setRemainingBalance(0);
+
+    // Mostrar mensaje de éxito
     showSnackbar("success", "Cuenta liquidada completamente.");
+
+    // Cerrar el modal de confirmación
     handleCloseLiquidarModal();
+  };
+
+  // Manejar cambios en el campo "Pagado"
+  const handlePaidAmountChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newPaidAmount = parseFloat(event.target.value);
+    setPaidAmount(newPaidAmount);
+    setRemainingBalance(totalAmount - newPaidAmount);
+  };
+
+  // Manejar la reducción de la cantidad de un producto
+  const handleReduceQuantity = (productId: number) => {
+    const updatedPayments = payments.map((payment) => {
+      const updatedProducts = payment.products.map((product) =>
+        product.id === productId && product.quantity > 1
+          ? { ...product, quantity: product.quantity - 1 }
+          : product
+      );
+
+      const newTotalAmount = updatedProducts.reduce(
+        (sum, product) => sum + product.price * product.quantity,
+        0
+      );
+
+      return {
+        ...payment,
+        products: updatedProducts,
+        totalAmount: newTotalAmount,
+      };
+    });
+
+    // Actualizar los pagos
+    setPayments(updatedPayments);
+  };
+
+  // Manejar la eliminación de un producto
+  const handleRemoveProduct = (productId: number) => {
+    const updatedPayments = payments.map((payment) => {
+      const updatedProducts = payment.products.filter(
+        (product) => product.id !== productId
+      );
+
+      const newTotalAmount = updatedProducts.reduce(
+        (sum, product) => sum + product.price * product.quantity,
+        0
+      );
+
+      return {
+        ...payment,
+        products: updatedProducts,
+        totalAmount: newTotalAmount,
+      };
+    });
+
+    setPayments(updatedPayments);
+  };
+
+  // Función para actualizar los pagos
+  const handleUpdatePayments = () => {
+    showSnackbar("success", "Pagos actualizados correctamente.");
+  };
+
+  // Función para limpiar los campos
+  const handleClearFields = () => {
+    setSearch(""); 
+    setPaidAmount(0);
+    setRemainingBalance(totalAmount); 
+    showSnackbar("success", "Campos limpiados correctamente.");
   };
 
   return (
@@ -172,41 +184,39 @@ const PendingPaymentsClient: React.FC = () => {
       <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
         <Typography
           variant="h4"
-          component="h1"
-          sx={{ mb: 4, textAlign: "center", fontWeight: "bold" }}
+          align="center"
+          fontWeight="bold"
+          sx={{ mb: 4 }}
         >
           Pagos Pendientes de {selectedClient?.name}
         </Typography>
 
-        {/* Barra de búsqueda */}
-        <Box sx={{ mb: 4 }}>
-          <TextField
-            fullWidth
-            placeholder="Buscar producto..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
-        </Box>
+        <TextField
+          fullWidth
+          placeholder="Buscar producto..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{ mb: 3 }}
+        />
 
-        {/* Tabla de productos pendientes */}
+        {/* Tabla de productos */}
         <Table>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
-              <TableCell>Producto</TableCell>
-              <TableCell align="right">Monto Total</TableCell>
-              <TableCell align="right">Abonado</TableCell>
-              <TableCell align="right">Saldo Restante</TableCell>
-              <TableCell align="center">Estado</TableCell>
-              <TableCell align="center">Acciones</TableCell>
+              <TableCell align="left">Nombre</TableCell>
+              <TableCell align="left">Cantidad</TableCell>
+              <TableCell align="left">Precio</TableCell>
+              <TableCell align="left">Total</TableCell>
+              <TableCell align="left">Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -214,77 +224,96 @@ const PendingPaymentsClient: React.FC = () => {
               <TableRow>
                 <TableCell colSpan={6} align="center">
                   <Typography variant="body1" sx={{ py: 2 }}>
-                    No hay productos pendientes.
+                    No hay productos que coincidan con la búsqueda.
                   </Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => {
-                const saldoRestante = product.amount - product.paid;
-                return (
-                  <TableRow key={product.id} hover>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell align="right">
-                      ${product.amount.toFixed(2)}
-                    </TableCell>
-                    <TableCell align="right">
-                      ${product.paid.toFixed(2)}
-                    </TableCell>
-                    <TableCell align="right">
-                      ${saldoRestante.toFixed(2)}
-                    </TableCell>
-                    <TableCell align="center">
-                      {saldoRestante <= 0 ? (
-                        <Typography color="success.main" fontWeight="bold">
-                          Pagado
-                        </Typography>
-                      ) : (
-                        <Typography color="error.main" fontWeight="bold">
-                          Pendiente
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell align="center">
-                      {saldoRestante > 0 && (
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          startIcon={<PaymentIcon />}
-                          onClick={() => handleOpenAbonarModal(product)}
-                          sx={{ mr: 1 }}
-                        >
-                          Abonar
-                        </Button>
-                      )}
-                      <Button
-                        variant="outlined"
-                        color="success"
-                        startIcon={<CheckCircleIcon />}
-                        onClick={() => handleMarkAsSettled(product.id)}
-                      >
-                        Saldada
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
+              filteredProducts.map((product) => (
+                <TableRow key={product.id} hover>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>{product.quantity}</TableCell>
+                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>${product.quantity * product.price}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      onClick={() => handleReduceQuantity(product.id)}
+                      disabled={product.quantity <= 1}
+                      color="error"
+                    >
+                      <RemoveIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleRemoveProduct(product.id)}
+                      color="error"
+                    >
+                      <DeleteIcon color="error" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
 
-        {/* Total y botón de liquidar cuenta */}
-        <Box
+        {/* Total, Pagado, Faltante y botón de liquidar cuenta */}
+        <Card
+          elevation={1}
           sx={{
             mt: 4,
+            p: 2,
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "center",
+            textAlign: "center",
           }}
         >
-          <Typography variant="h6">Total: ${totalAmount.toFixed(2)}</Typography>
-          <Typography variant="h6">
-            Faltante: ${totalRemaining.toFixed(2)}
-          </Typography>
+          <TextField
+            label="Total"
+            value={totalAmount.toFixed(2)}
+            disabled
+            sx={{ width: "150px" }}
+          />
+          <TextField
+            label="Pagado"
+            value={paidAmount.toFixed(2)}
+            onChange={handlePaidAmountChange}
+            sx={{ width: "150px" }}
+          />
+
+          <TextField
+            label="Faltante"
+            value={remainingBalance.toFixed(2)}
+            disabled
+            sx={{ width: "150px" }}
+          />
+        </Card>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<SaveIcon />}
+            onClick={handleUpdatePayments}
+          >
+            Actualizar Pagos
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            sx={{
+              borderRadius: 2,
+              padding: "10px 20px",
+              fontWeight: "bold",
+              borderColor: "#d32f2f",
+              "&:hover": {
+                borderColor: "#b71c1c",
+                backgroundColor: "#ffebee",
+              },
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+            onClick={handleClearFields}
+          >
+            Limpiar Campos
+          </Button>
           <Button
             variant="contained"
             color="primary"
@@ -295,209 +324,13 @@ const PendingPaymentsClient: React.FC = () => {
         </Box>
       </Paper>
 
-      {/* Modal de Abono */}
-      <Dialog
-        open={openAbonarModal}
-        onClose={handleCloseAbonarModal}
-        sx={{
-          "& .MuiPaper-root": {
-            borderRadius: 3,
-            boxShadow: 3,
-            maxWidth: "400px",
-            width: "100%",
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            backgroundColor: "#f8f9fa",
-            borderBottom: "1px solid #e9ecef",
-            py: 2,
-          }}
-        >
-          <PaymentIcon
-            color="primary"
-            fontSize="large"
-            sx={{ fontSize: "2.5rem" }}
-          />{" "}
-          {/* Ícono de pago más grande */}
-          <Typography variant="h6" fontWeight="bold" color="text.primary">
-            Abonar a {currentProduct?.name}
-          </Typography>
-        </DialogTitle>
-        <DialogContent sx={{ py: 3, textAlign: "center" }}>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body1" color="text.secondary">
-              Monto total:{" "}
-              <strong style={{ color: "#1976d2" }}>
-                ${currentProduct?.amount.toFixed(2)}
-              </strong>
-            </Typography>
-          </Box>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body1" color="text.secondary">
-              Abonado:{" "}
-              <strong style={{ color: "#4caf50" }}>
-                ${currentProduct?.paid.toFixed(2)}
-              </strong>
-            </Typography>
-          </Box>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body1" color="text.secondary">
-              Saldo restante:{" "}
-              <strong style={{ color: "#d32f2f" }}>
-                $
-                {(currentProduct
-                  ? currentProduct.amount - currentProduct.paid
-                  : 0
-                ).toFixed(2)}
-              </strong>
-            </Typography>
-          </Box>
-          <TextField
-            fullWidth
-            label="Monto a abonar"
-            type="number"
-            value={abonoAmount}
-            onChange={(e) => setAbonoAmount(parseFloat(e.target.value))}
-            sx={{ mt: 2 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">$</InputAdornment>
-                ),
-              },
-            }}
-          />
-        </DialogContent>
-        <DialogActions
-          sx={{
-            justifyContent: "center",
-            gap: 2,
-            py: 2,
-            backgroundColor: "#f8f9fa",
-            borderTop: "1px solid #e9ecef",
-          }}
-        >
-          <Button
-            onClick={handleCloseAbonarModal}
-            variant="outlined"
-            color="error"
-            startIcon={<CancelIcon />}
-            sx={{
-              px: 4,
-              py: 1,
-              fontWeight: "bold",
-              textTransform: "none",
-            }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleAbonar}
-            variant="contained"
-            color="success"
-            startIcon={<DoneIcon />}
-            sx={{
-              px: 4,
-              py: 1,
-              fontWeight: "bold",
-              textTransform: "none",
-            }}
-          >
-            Abonar
-          </Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Modal de Confirmación para Liquidar Cuenta */}
-      <Dialog
+      <ConfirmLiquidarModal
         open={openLiquidarModal}
         onClose={handleCloseLiquidarModal}
-        sx={{
-          "& .MuiPaper-root": {
-            borderRadius: 3,
-            boxShadow: 3,
-            maxWidth: "400px",
-            width: "100%",
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            backgroundColor: "#f8f9fa",
-            borderBottom: "1px solid #e9ecef",
-            py: 2, // Padding vertical
-          }}
-        >
-          {/* Ícono de advertencia más grande */}
-          <Typography variant="h6" fontWeight="bold" color="text.primary">
-            Confirmar Liquidación
-          </Typography>
-        </DialogTitle>
-        <DialogContent sx={{ py: 3, textAlign: "center" }}>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            Estás a punto de liquidar la cuenta completa por un monto total de:
-          </Typography>
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            color="primary"
-            sx={{ mb: 3, fontSize: "1.75rem" }}
-          >
-            ${totalAmount.toFixed(2)}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            ¿Estás seguro de continuar?
-          </Typography>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            justifyContent: "center",
-            gap: 2,
-            py: 2,
-            backgroundColor: "#f8f9fa",
-            borderTop: "1px solid #e9ecef",
-          }}
-        >
-          <Button
-            onClick={handleCloseLiquidarModal}
-            variant="outlined"
-            color="error"
-            startIcon={<CancelIcon />}
-            sx={{
-              px: 4,
-              py: 1,
-              fontWeight: "bold",
-              textTransform: "none",
-            }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleConfirmLiquidarCuenta}
-            variant="contained"
-            color="success"
-            startIcon={<DoneIcon />}
-            sx={{
-              px: 4,
-              py: 1,
-              fontWeight: "bold",
-              textTransform: "none",
-            }}
-          >
-            Liquidar
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleConfirmLiquidarCuenta}
+        totalAmount={totalAmount}
+      />
 
       {/* Snackbar de confirmación y errores */}
       <Snackbar
@@ -510,15 +343,6 @@ const PendingPaymentsClient: React.FC = () => {
           {messageSnackbar}
         </Alert>
       </Snackbar>
-
-      {/* Modal de Confirmación */}
-      <ConfirmModal
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        onConfirm={handleConfirmSettled}
-        title="Confirmar Cuenta Saldada"
-        message="¿Estás seguro de que deseas marcar esta cuenta como saldada?"
-      />
     </Container>
   );
 };

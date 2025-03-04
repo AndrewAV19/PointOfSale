@@ -9,4 +9,23 @@ export interface Clients {
     zipCode: number;
     country: string;
   }
+
+  export interface ClientDebtDTO {
+    client: {
+      id: number;
+      name: string;
+    };
+    products: {
+      id: number;
+      name: string;
+      price: number;
+      stock: number;
+      costPrice: number;
+      quantity: number;
+    }[];
+    totalAmount: number;
+    paidAmount: number;
+    remainingBalance: number;
+    state: string;
+  }
   

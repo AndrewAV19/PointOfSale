@@ -2,7 +2,7 @@ import { StateCreator, create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Users } from "../pointofsale/interfaces/users.interface";
 import { UsersService } from "../services/users.service";
-import { Clients } from "../pointofsale/interfaces/clients.interface";
+import { ClientDebtDTO, Clients } from "../pointofsale/interfaces/clients.interface";
 import { ClientsService } from "../services/clients.service";
 import { Supplier } from "../pointofsale/interfaces/supplier.interface";
 import { SuppliersService } from "../services/suppliers.service";
@@ -30,6 +30,7 @@ interface DataState {
   setSelectedSale: (sale: Sale) => void;
   selectedShopping: Shopping | null;
   setSelectedShopping: (shopping: Shopping) => void;
+  clientDebts: ClientDebtDTO[];
   statusRefresh: boolean;
   getUserById: (idUser: number) => Promise<void>;
   getClientById: (idClient: number) => Promise<void>;
@@ -38,6 +39,7 @@ interface DataState {
   getProductById: (idProduct: number) => Promise<void>;
   getSaleById: (idSale: number) => Promise<void>;
   getShoppingById: (idShopping: number) => Promise<void>;
+  getClientDebts: (clientId: number) => Promise<void>;
 }
 
 
@@ -56,6 +58,7 @@ const storeData: StateCreator<DataState> = (set) => ({
   setSelectedSale: (sale: Sale) => set(() => ({ selectedSale: sale })),
   selectedShopping: null,
   setSelectedShopping: (shopping: Shopping) => set(() => ({ selectedShopping: shopping })),
+  clientDebts: [],
   statusRefresh: false,
  
   getUserById: async (idUser: number) => {
@@ -135,6 +138,16 @@ const storeData: StateCreator<DataState> = (set) => ({
     }
   },
 
+  getClientDebts: async (clientId: number) => {
+    try {
+      set(() => ({ statusRefresh: true }));
+      const debts = await SaleService.getClientDebts(clientId);
+      set(() => ({ clientDebts: debts, statusRefresh: false }));
+    } catch (error) {
+      console.error(error);
+      set(() => ({ clientDebts: [], statusRefresh: false }));
+    }
+  },
 
 });
 

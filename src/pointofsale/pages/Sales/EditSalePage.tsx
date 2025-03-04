@@ -583,7 +583,7 @@ const EditSalePage: React.FC = () => {
                   amountGiven < calculateTotal() ||
                   !hasChanges
                 : productsList.length === 0 ||
-                  amountGiven <= 0 ||
+                
                   !hasChanges
             }
           >

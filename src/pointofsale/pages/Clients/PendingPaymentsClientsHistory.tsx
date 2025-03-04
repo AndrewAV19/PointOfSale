@@ -18,7 +18,7 @@ import { storeClients } from "../../../stores/clients.store";
 export default function PendingPaymentsClientsHistory() {
   const { listClientsWithPendingPayments, getClientsWithPendingPayments } =
     storeClients();
-  const { getClientById } = dataStore();
+  const { getClientDebts } = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const [clients, setClients] = useState(listClientsWithPendingPayments);
@@ -113,7 +113,7 @@ export default function PendingPaymentsClientsHistory() {
                       startIcon={<Visibility />}
                       size="small"
                       onClick={async () => {
-                        await getClientById(client.id ?? 0);
+                        await getClientDebts(client.id ?? 0);
                         navigate(`/clientes/editar/pagos-pendientes`);
                       }}
                     >

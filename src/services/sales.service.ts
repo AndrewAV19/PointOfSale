@@ -1,4 +1,5 @@
 import api from "../lib/axios";
+import { ClientDebtDTO } from "../pointofsale/interfaces/clients.interface";
 import { Sale, SaleRequest } from "../pointofsale/interfaces/sales.interface";
 
 
@@ -118,6 +119,22 @@ export class SaleService {
     } catch (error) {
       console.error(error);
       throw new Error("Error al eliminar la venta");
+    }
+  };
+
+  static readonly getClientDebts = async (clientId: number): Promise<ClientDebtDTO[]> => {
+    try {
+      const response = await api.get<ClientDebtDTO[]>(`/sales/client-debts/${clientId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error al obtener las deudas del cliente");
     }
   };
 }
