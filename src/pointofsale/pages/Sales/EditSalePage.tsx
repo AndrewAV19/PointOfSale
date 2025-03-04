@@ -23,6 +23,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  SelectChangeEvent,
 } from "@mui/material";
 import {
   AddShoppingCart as AddShoppingCartIcon,
@@ -30,37 +31,55 @@ import {
   Search as SearchIcon,
   Save as SaveIcon,
   ArrowBack as ArrowBackIcon,
+  Clear as ClearIcon,
 } from "@mui/icons-material";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
 import { products } from "../../mocks/productMock";
-import { Product } from "../../interfaces/product.interface";
-import { mockSale } from "../../mocks/saleMock";
+
 import { useNavigate } from "react-router-dom";
+import { dataStore } from "../../../stores/generalData.store";
+import { storeSales } from "../../../stores/sales.store";
+import { Product } from "../../interfaces/product.interface";
+import {
+  SaleProduct,
+  SaleProductRequest,
+  SaleRequest,
+} from "../../interfaces/sales.interface";
+import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 
 const EditSalePage: React.FC = () => {
+  const { selectedSale } = dataStore();
+  const { deleteSale, updateSale } = storeSales();
   const navigate = useNavigate();
-  const [client, setClient] = useState(mockSale.client.id);
+  const [client, setClient] = useState(selectedSale?.client?.id);
   const [openModalProducts, setOpenModalProducts] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [amountGiven, setAmountGiven] = useState(mockSale.amountGiven);
+  const [amountGiven, setAmountGiven] = useState(selectedSale?.amount ?? 0);
   const [change, setChange] = useState(0);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning"
   >("success");
   const [saleStatus, setSaleStatus] = useState<"pendiente" | "pagada">(
-    "pagada"
+    selectedSale?.state === "pendiente" ? "pendiente" : "pagada"
   );
+  const [openDialog, setOpenDialog] = useState(false);
   const [messageSnackbar, setMessageSnackbar] = useState("");
-  const [productsList, setProductsList] = useState<any[]>(mockSale.products);
+  const [productsList, setProductsList] = useState<SaleProduct[]>(
+    selectedSale?.saleProducts || []
+  );
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Función para calcular el total de la venta
   const calculateTotal = () => {
-    return productsList.reduce((acc, product) => acc + product.total, 0);
+    return productsList.reduce(
+      (acc, saleProduct) =>
+        acc + saleProduct.product.price * saleProduct.quantity,
+      0
+    );
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,9 +87,8 @@ const EditSalePage: React.FC = () => {
     setQuantity(newQuantity);
 
     // Recalcular el cambio cuando cambie la cantidad
-    const selectedProduct = products.find((p) => p.name === product?.name);
-    if (selectedProduct) {
-      setChange(amountGiven - newQuantity * selectedProduct.price);
+    if (product) {
+      setChange(amountGiven - newQuantity * product.price);
     }
   };
 
@@ -96,30 +114,28 @@ const EditSalePage: React.FC = () => {
   const handleAddProduct = () => {
     if (product) {
       // Verifica si el producto ya existe en la lista
-      const existingProduct = productsList.find((p) => p.id === product.id);
+      const existingProduct = productsList.find(
+        (p) => p.product.id === product.id
+      );
 
       if (existingProduct) {
-        // Si el producto ya existe, actualiza su cantidad y total
+        // Si el producto ya existe, actualiza su cantidad
         setProductsList((prevList) =>
           prevList.map((p) =>
-            p.id === product.id
+            p.product.id === product.id
               ? {
                   ...p,
                   quantity: p.quantity + quantity,
-                  total: (p.quantity + quantity) * p.price,
                 }
               : p
           )
         );
       } else {
-        const newProduct = {
-          id: product.id,
-          name: product.name,
+        const newSaleProduct: SaleProduct = {
+          product,
           quantity,
-          price: product.price,
-          total: product.price * quantity,
         };
-        setProductsList((prevList) => [...prevList, newProduct]);
+        setProductsList((prevList) => [...prevList, newSaleProduct]);
       }
 
       setProduct(null);
@@ -131,18 +147,20 @@ const EditSalePage: React.FC = () => {
     }
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    setProductsList((prevList) => prevList.filter((p) => p.id !== productId));
+  const handleDeleteProduct = (productId: number) => {
+    setProductsList((prevList) =>
+      prevList.filter((p) => p.product.id !== productId)
+    );
     setHasChanges(true);
   };
 
   const handleReset = () => {
-    setClient(mockSale.client.id);
+    setClient(selectedSale?.client?.id);
     setProduct(null);
     setQuantity(1);
-    setAmountGiven(mockSale.amountGiven);
+    setAmountGiven(selectedSale?.amount ?? 0);
     setChange(0);
-    setProductsList(mockSale.products);
+    setProductsList(selectedSale?.saleProducts ?? []);
   };
 
   const handleOpenSnackbar = (message: string) => {
@@ -169,65 +187,97 @@ const EditSalePage: React.FC = () => {
   };
 
   // Función para aumentar la cantidad
-  const handleIncreaseQuantity = (productId: string) => {
+  const handleIncreaseQuantity = (productId: number) => {
     setProductsList((prevList) =>
-      prevList.map((product) =>
-        product.id === productId
+      prevList.map((saleProduct) =>
+        saleProduct.product.id === productId
           ? {
-              ...product,
-              quantity: product.quantity + 1,
-              total: (product.quantity + 1) * product.price,
+              ...saleProduct,
+              quantity: saleProduct.quantity + 1,
             }
-          : product
+          : saleProduct
       )
     );
     setHasChanges(true);
   };
 
-  const handleDecreaseQuantity = (productId: string) => {
+  const handleDecreaseQuantity = (productId: number) => {
     setProductsList((prevList) =>
-      prevList.map((product) =>
-        product.id === productId && product.quantity > 1
+      prevList.map((saleProduct) =>
+        saleProduct.product.id === productId && saleProduct.quantity > 1
           ? {
-              ...product,
-              quantity: product.quantity - 1,
-              total: (product.quantity - 1) * product.price,
+              ...saleProduct,
+              quantity: saleProduct.quantity - 1,
             }
-          : product
+          : saleProduct
       )
     );
+    setHasChanges(true);
+  };
+
+  const handleSaleStatusChange = (event: SelectChangeEvent<"pendiente" | "pagada">) => {
+    setSaleStatus(event.target.value as "pendiente" | "pagada");
     setHasChanges(true);
   };
 
   // Confirmar edición de la venta
-  const handleConfirmEdit = () => {
+  const handleConfirmEdit = async () => {
     if (productsList.length === 0) {
       setSnackbarSeverity("warning");
       handleOpenSnackbar("No hay productos agregados.");
       return;
     }
 
-    if (saleStatus === "pendiente") {
-      setSnackbarSeverity("success");
-      handleOpenSnackbar("Venta editada exitosamente");
-    } else {
-      if (amountGiven < calculateTotal()) {
-        setSnackbarSeverity("error");
-        handleOpenSnackbar("Dinero insuficiente.");
-        return;
-      }
+    try {
+      const saleProductsRequest: SaleProductRequest[] = productsList.map(
+        (item) => {
+          if (!item.product.id) {
+            throw new Error("El ID del producto es requerido.");
+          }
+          return {
+            id: item.id,
+            product: {
+              id: item.product.id,
+            },
+            quantity: item.quantity,
+            sale_id: selectedSale?.id ?? 0,
+          };
+        }
+      );
+
+      const updatedSaleData: Partial<SaleRequest> = {
+        client: client ? { id: client } : undefined,
+        saleProducts: saleProductsRequest,
+        amount: amountGiven,
+        state: saleStatus,
+        total: calculateTotal(),
+      };
+
+      await updateSale(selectedSale?.id ?? 0, updatedSaleData);
 
       setSnackbarSeverity("success");
       handleOpenSnackbar("Venta editada exitosamente");
+
+      setHasChanges(false);
+    } catch (error) {
+      console.error(error);
+      setSnackbarSeverity("error");
+      handleOpenSnackbar("Error al actualizar la venta");
     }
   };
 
   // Eliminar la venta
-  const handleDeleteSale = () => {
-    navigate(`/ventas/historial`);
-    setSnackbarSeverity("success");
-    handleOpenSnackbar("Venta Eliminada Correctamente");
-    handleReset();
+  const handleDeleteClick = () => {
+    setOpenDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteSale(selectedSale?.id ?? 0);
+      navigate(`/ventas/historial`);
+    } catch (error) {
+      console.error("Error al eliminar el producto:", error);
+    }
   };
 
   const handleGoBack = () => {
@@ -237,6 +287,12 @@ const EditSalePage: React.FC = () => {
   useEffect(() => {
     setChange(amountGiven - calculateTotal());
   }, [productsList, amountGiven]);
+
+  useEffect(() => {
+    const total = calculateTotal();
+    const isValid = !isNaN(amountGiven) && amountGiven >= total;
+    setHasChanges(isValid);
+  }, [amountGiven, productsList]);
 
   return (
     <Container maxWidth="lg" sx={{ marginTop: 4 }}>
@@ -350,9 +406,7 @@ const EditSalePage: React.FC = () => {
                 <InputLabel>Estado de la venta</InputLabel>
                 <Select
                   value={saleStatus}
-                  onChange={(e) =>
-                    setSaleStatus(e.target.value as "pendiente" | "pagada")
-                  }
+                  onChange={handleSaleStatusChange }
                   label="Estado de la venta"
                 >
                   <MenuItem value="pendiente">Pendiente</MenuItem>
@@ -425,35 +479,46 @@ const EditSalePage: React.FC = () => {
             <TableBody>
               {productsList
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((product) => (
-                  <TableRow key={product.id}>
+                .map((saleProduct) => (
+                  <TableRow key={saleProduct.product.id}>
                     <TableCell>
-                      <Avatar alt={product.name} src={product.image} />
+                      <Avatar
+                        alt={saleProduct.product.name}
+                        src={saleProduct.product.images?.[0]}
+                      />
                     </TableCell>
-                    <TableCell>{product.name}</TableCell>
+                    <TableCell>{saleProduct.product.name}</TableCell>
                     <TableCell>
                       <Box sx={{ display: "flex", alignItems: "center" }}>
                         <IconButton
-                          onClick={() => handleDecreaseQuantity(product.id)}
+                          onClick={() =>
+                            handleDecreaseQuantity(saleProduct.product.id!)
+                          }
                         >
                           -
                         </IconButton>
                         <Typography variant="body2">
-                          {product.quantity}
+                          {saleProduct.quantity}
                         </Typography>
                         <IconButton
-                          onClick={() => handleIncreaseQuantity(product.id)}
+                          onClick={() =>
+                            handleIncreaseQuantity(saleProduct.product.id!)
+                          }
                         >
                           +
                         </IconButton>
                       </Box>
                     </TableCell>
-                    <TableCell>${product.price}</TableCell>{" "}
-                    <TableCell>${product.total}</TableCell>
+                    <TableCell>${saleProduct.product.price}</TableCell>
+                    <TableCell>
+                      ${saleProduct.product.price * saleProduct.quantity}
+                    </TableCell>
                     <TableCell>
                       <IconButton
                         color="error"
-                        onClick={() => handleDeleteProduct(product.id)}
+                        onClick={() =>
+                          handleDeleteProduct(saleProduct.product.id!)
+                        }
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -475,7 +540,7 @@ const EditSalePage: React.FC = () => {
 
         <Divider sx={{ marginY: 3 }} />
 
-        {/* Total y Botones */}
+        {/* Total*/}
         <Box
           sx={{
             display: "flex",
@@ -499,59 +564,65 @@ const EditSalePage: React.FC = () => {
               }}
             />
           </Box>
+        </Box>
 
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            gap={2}
-            sx={{ marginTop: 3 }}
+        {/* Botones*/}
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<SaveIcon />}
+            type="submit"
+            onClick={handleConfirmEdit}
+            disabled={
+              saleStatus === "pagada"
+                ? productsList.length === 0 ||
+                  amountGiven < calculateTotal() ||
+                  !hasChanges
+                : productsList.length === 0 || !hasChanges
+            }
           >
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "green",
-                "&:hover": { backgroundColor: "darkgreen" },
-                color: "white",
-                fontWeight: "bold",
-                textTransform: "none",
-                boxShadow: 2,
-                padding: "10px 20px",
-                borderRadius: "8px",
-                transition: "background-color 0.3s ease",
-              }}
-              startIcon={<SaveIcon />}
-              fullWidth
-              onClick={handleConfirmEdit}
-              disabled={
-                saleStatus === "pagada"
-                  ? productsList.length === 0 ||
-                    amountGiven < calculateTotal() ||
-                    !hasChanges
-                  : productsList.length === 0 || !hasChanges
-              }
-            >
-              Confirmar Edición
-            </Button>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "error.main",
-                "&:hover": { backgroundColor: "darkred" },
-                color: "white",
-                fontWeight: "bold",
-                textTransform: "none",
-                boxShadow: 2,
-                padding: "10px 20px",
-                borderRadius: "8px",
-                transition: "background-color 0.3s ease",
-              }}
-              startIcon={<DeleteIcon />}
-              fullWidth
-              onClick={handleDeleteSale}
-            >
-              Eliminar Venta
-            </Button>
-          </Box>
+            Actualizar Venta
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteIcon />}
+            sx={{
+              borderRadius: 2,
+              padding: "10px 20px",
+              fontWeight: "bold",
+              borderColor: "#d32f2f",
+              "&:hover": {
+                borderColor: "#b71c1c",
+                backgroundColor: "#ffebee",
+              },
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+            onClick={handleDeleteClick}
+          >
+            Eliminar Venta
+          </Button>
+
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<ClearIcon />}
+            onClick={handleReset}
+            sx={{
+              borderRadius: 2,
+              padding: "10px 20px",
+              fontWeight: "bold",
+              borderColor: "#d32f2f",
+              "&:hover": {
+                borderColor: "#b71c1c",
+                backgroundColor: "#ffebee",
+              },
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            Limpiar Campos
+          </Button>
         </Box>
       </Paper>
 
@@ -579,6 +650,13 @@ const EditSalePage: React.FC = () => {
           {messageSnackbar}
         </Alert>
       </Snackbar>
+      <ConfirmDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onConfirm={handleConfirmDelete}
+        title="Confirmar Eliminación"
+        message="¿Estás seguro de que deseas eliminar esta venta?"
+      />
     </Container>
   );
 };

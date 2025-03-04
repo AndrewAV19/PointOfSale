@@ -10,9 +10,9 @@ import {
   TextField,
   InputAdornment,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ProductTable } from "../tables/ProductTable";
-import { products } from "../mocks/productMock";
+import { storeProducts } from "../../stores/products.store";
 
 interface ModalSearchToProductsProps {
   open: boolean;
@@ -27,11 +27,15 @@ export const ModalSearchProducts: React.FC<ModalSearchToProductsProps> = ({
   handleSelect,
   showPrice,
 }) => {
-
+  const { getProducts, listProducts } = storeProducts();
   const [search, setSearch] = useState("");
 
+     useEffect(() => {
+        getProducts();
+      }, [getProducts]);
+
   // Filtrar productos según el texto de búsqueda
-  const filteredProducts = products.filter((product) =>
+  const filteredProducts = listProducts.filter((product) =>
     product.name.toLowerCase().includes(search.toLowerCase())
   );
 
