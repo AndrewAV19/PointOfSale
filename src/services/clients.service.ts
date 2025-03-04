@@ -75,10 +75,8 @@ export class ClientsService {
     try {
       const currentUser = await ClientsService.getClientById(id);
 
-      // Crear un objeto con solo los campos que han cambiado
       const updatedFields: Partial<Clients> = {};
 
-      // Definir los campos a verificar
       const fieldsToCheck: {
         key: keyof Clients;
         value: any;
@@ -143,6 +141,21 @@ export class ClientsService {
     } catch (error) {
       console.error(error);
       throw new Error("Error al eliminar el cliente");
+    }
+  };
+
+  static readonly getClientsWithPendingPayments = async (): Promise<Clients[]> => {
+    try {
+      const response = await api.get<Clients[]>("/clients/pending-payments", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      console.log(response);
+      return response.data;
+    } catch (error) {
+      throw new Error("UnAuthorized");
     }
   };
 }

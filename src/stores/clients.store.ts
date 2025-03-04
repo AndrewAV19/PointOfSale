@@ -5,6 +5,7 @@ import { ClientsService } from "../services/clients.service";
 
 interface ClientsState {
   listClients: Clients[];
+  listClientsWithPendingPayments: Clients[];
   loading: boolean;
   getClients: () => Promise<void>;
 
@@ -34,10 +35,13 @@ interface ClientsState {
   ) => Promise<Clients>;
 
   deleteClient: (id: number) => Promise<void>;
+
+  getClientsWithPendingPayments: () => Promise<void>;
 }
 
 const clientsStore: StateCreator<ClientsState> = (set, get) => ({
   listClients: [],
+  listClientsWithPendingPayments: [],
   loading: false,
 
   getClients: async () => {
@@ -96,6 +100,18 @@ const clientsStore: StateCreator<ClientsState> = (set, get) => ({
       throw new Error("Error al eliminar el cliente");
     }
   },
+
+  getClientsWithPendingPayments: async () => {
+    try {
+      const data = await ClientsService.getClientsWithPendingPayments();
+      console.log(data);
+      set({ listClientsWithPendingPayments: data, loading: true });
+    } catch (error) {
+      set({ listClients: [], loading: false });
+      throw new Error("Unauthorized");
+    }
+  },
+
 });
 
 export const storeClients = create<ClientsState>()(

@@ -12,55 +12,30 @@ import {
 import { Search, Visibility, Download } from "@mui/icons-material";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 import { dataStore } from "../../../stores/generalData.store";
 import { storeClients } from "../../../stores/clients.store";
 
 export default function PendingPaymentsClientsHistory() {
-  const { listClients, getClients, deleteClient } = storeClients();
+  const { listClientsWithPendingPayments, getClientsWithPendingPayments } =
+    storeClients();
   const { getClientById } = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const [clients, setClients] = useState(listClients);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+  const [clients, setClients] = useState(listClientsWithPendingPayments);
   const pdfRef = useRef(null);
 
-  // Obtener la lista de clientes al cargar el componente
   useEffect(() => {
-    getClients();
-  }, [getClients]);
+    getClientsWithPendingPayments();
+  }, [getClientsWithPendingPayments]);
 
-  // Actualizar la lista de clientes cuando cambie listClients
   useEffect(() => {
-    setClients(listClients);
-  }, [listClients]);
+    setClients(listClientsWithPendingPayments);
+  }, [listClientsWithPendingPayments]);
 
-  // Filtrar clientes por nombre
   const filteredClients = clients.filter((client) =>
     client?.name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Manejar la eliminación de un cliente
-  const handleDeleteClick = (id: number) => {
-    setSelectedClientId(id);
-    setOpenDialog(true);
-  };
-
-  // Confirmar la eliminación de un cliente
-  const handleConfirmDelete = async () => {
-    if (selectedClientId) {
-      try {
-        await deleteClient(selectedClientId);
-        setClients(clients.filter((client) => client.id !== selectedClientId));
-        setOpenDialog(false);
-      } catch (error) {
-        console.error("Error al eliminar el cliente:", error);
-      }
-    }
-  };
-
-  // Función para exportar la vista a PDF
   const exportToPDF = () => {
     const input = pdfRef.current;
     if (!input) return;
@@ -144,16 +119,6 @@ export default function PendingPaymentsClientsHistory() {
                     >
                       Ver
                     </Button>
-
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      size="small"
-                      onClick={() => handleDeleteClick(client.id ?? 0)}
-                      sx={{ ml: 1 }}
-                    >
-                      Eliminar
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -161,15 +126,6 @@ export default function PendingPaymentsClientsHistory() {
           </TableBody>
         </Table>
       </div>
-
-      {/* Modal de Confirmación */}
-      <ConfirmDialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        onConfirm={handleConfirmDelete}
-        title="Confirmar Eliminación"
-        message="¿Estás seguro de que deseas eliminar este cliente?"
-      />
     </div>
   );
 }
