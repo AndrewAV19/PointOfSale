@@ -12,6 +12,8 @@ import { Product } from "../pointofsale/interfaces/product.interface";
 import { ProductService } from "../services/products.service";
 import { Sale } from "../pointofsale/interfaces/sales.interface";
 import { SaleService } from "../services/sales.service";
+import { Shopping } from "../pointofsale/interfaces/shopping.interface";
+import { ShoppingService } from "../services/shopping.service";
 
 interface DataState {
   selectedUser: Users | null;
@@ -26,13 +28,16 @@ interface DataState {
   setSelectedProduct: (product: Product) => void;
   selectedSale: Sale | null;
   setSelectedSale: (sale: Sale) => void;
+  selectedShopping: Shopping | null;
+  setSelectedShopping: (shopping: Shopping) => void;
   statusRefresh: boolean;
   getUserById: (idUser: number) => Promise<void>;
   getClientById: (idClient: number) => Promise<void>;
   getSupplierById: (idSupplier: number) => Promise<void>;
   getCategoryById: (idCategory: number) => Promise<void>;
   getProductById: (idProduct: number) => Promise<void>;
-  getSaleById: (idProduct: number) => Promise<void>;
+  getSaleById: (idSale: number) => Promise<void>;
+  getShoppingById: (idShopping: number) => Promise<void>;
 }
 
 
@@ -49,6 +54,8 @@ const storeData: StateCreator<DataState> = (set) => ({
   setSelectedProduct: (product: Product) => set(() => ({ selectedProduct: product })),
   selectedSale: null,
   setSelectedSale: (sale: Sale) => set(() => ({ selectedSale: sale })),
+  selectedShopping: null,
+  setSelectedShopping: (shopping: Shopping) => set(() => ({ selectedShopping: shopping })),
   statusRefresh: false,
  
   getUserById: async (idUser: number) => {
@@ -111,6 +118,17 @@ const storeData: StateCreator<DataState> = (set) => ({
       set(() => ({ statusRefresh: true }));
       const sale = await SaleService.getSaleById(idSale);
       set(() => ({ selectedSale: sale, statusRefresh: false }));
+    } catch (error) {
+      console.error(error);
+      set(() => ({ statusRefresh: false }));
+    }
+  },
+
+  getShoppingById: async (idShopping: number) => {
+    try {
+      set(() => ({ statusRefresh: true }));
+      const sale = await ShoppingService.getShoppingById(idShopping);
+      set(() => ({ selectedShopping: sale, statusRefresh: false }));
     } catch (error) {
       console.error(error);
       set(() => ({ statusRefresh: false }));

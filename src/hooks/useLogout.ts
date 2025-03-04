@@ -13,6 +13,7 @@ const useLogout = () => {
     localStorage.removeItem("products-data"); 
     localStorage.removeItem("categories-data"); 
     localStorage.removeItem("sales-data"); 
+    localStorage.removeItem("shoppings-data"); 
     localStorage.removeItem("general-data"); 
   
     navigate("/auth/login"); 
