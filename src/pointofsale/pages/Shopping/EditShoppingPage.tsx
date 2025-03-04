@@ -76,8 +76,15 @@ const EditShoppingPage: React.FC = () => {
   };
 
   const handleAmountGivenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const amount = parseFloat(e.target.value);
+    let amount = parseFloat(e.target.value);
+
+    if (isNaN(amount)) {
+      amount = 0;
+    }
+
     setAmountGiven(amount);
+    setChange(amount - calculateTotal());
+    setHasChanges(true);
   };
 
   const handleProductIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {

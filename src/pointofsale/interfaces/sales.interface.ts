@@ -27,7 +27,7 @@ export interface SaleRequest {
 }
 
 export interface SaleProductRequest {
-    sale_id: number;
+    sale_id?: number;
     id?: number; 
     product: { id: number };
     quantity: number;

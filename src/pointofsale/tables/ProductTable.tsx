@@ -15,8 +15,8 @@ export const ProductTable: React.FC<ProductListProps> = ({ products, onSelect, s
         <TableHead>
           <TableRow>
             <TableCell>Nombre</TableCell>
-            <TableCell>Descripción</TableCell>
-            <TableCell>{showPrice ? 'Precio' : 'Costo'}</TableCell> 
+            <TableCell>Stock</TableCell>
+            <TableCell>{showPrice ? 'Precio venta' : 'Precio compra'}</TableCell> 
             <TableCell align="center">Acción</TableCell>
           </TableRow>
         </TableHead>
@@ -25,8 +25,8 @@ export const ProductTable: React.FC<ProductListProps> = ({ products, onSelect, s
             products.map((product) => (
               <TableRow key={product.id} hover>
                 <TableCell>{product.name}</TableCell>
-                <TableCell>{product.description}</TableCell>
-                <TableCell>{showPrice ? product.price : product.costPrice}</TableCell> {/* Mostrar precio o costo */}
+                <TableCell>{product.stock}</TableCell>
+                <TableCell>{showPrice ? product.price : product.costPrice}</TableCell>
                 <TableCell align="center">
                   <Button
                     variant="contained"

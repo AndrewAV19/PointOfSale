@@ -77,7 +77,12 @@ const CreateSalePage: React.FC = () => {
   };
 
   const handleAmountGivenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const amount = parseFloat(e.target.value);
+    let amount = parseFloat(e.target.value);
+
+    if (isNaN(amount)) {
+      amount = 0;
+    }
+
     setAmountGiven(amount);
     setChange(amount - calculateTotal());
   };
@@ -204,7 +209,7 @@ const CreateSalePage: React.FC = () => {
       handleOpenSnackbar("No hay productos agregados.");
       return;
     }
-  
+
     try {
       const saleData: SaleRequest = {
         client: client ? { id: parseInt(client, 10) } : undefined,
@@ -216,12 +221,12 @@ const CreateSalePage: React.FC = () => {
         state: saleStatus,
         total: calculateTotal(),
       };
-  
+
       await storeSales.getState().createSale(saleData);
-  
+
       setSnackbarSeverity("success");
       handleOpenSnackbar("Venta creada exitosamente");
-  
+
       // Reiniciar el formulario
       handleReset();
     } catch (error) {

@@ -25,7 +25,7 @@ export interface ShoppingRequest {
 }
 
 export interface ShoppingProductRequest {
-    shopping_id: number;
+    shopping_id?: number;
     id?: number; 
     product: { id: number };
     quantity: number;

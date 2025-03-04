@@ -137,7 +137,7 @@ export default function HistorySales() {
                 <TableRow key={venta.id} className="hover:bg-gray-100">
                   <TableCell>{venta.id}</TableCell>
                   <TableCell>{venta.client?.name ?? ""}</TableCell>
-                  <TableCell>{venta.total}</TableCell>
+                  <TableCell>${venta.total}</TableCell>
                   <TableCell>
                     {venta.createdAt
                       ? new Date(venta.createdAt).toLocaleString("es-ES", {

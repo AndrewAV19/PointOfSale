@@ -31,6 +31,8 @@ import { ModalSearchSuppliers } from "../../modales/ModalSearchSuppliers";
 import { Product } from "../../interfaces/product.interface";
 import { products } from "../../mocks/productMock";
 import { ModalSearchProducts } from "../../modales/ModalSearchProducts";
+import { ShoppingRequest } from "../../interfaces/shopping.interface";
+import { storeShoppings } from "../../../stores/shopping.store";
 
 const CreateShoppingPage: React.FC = () => {
   const [supplier, setSupplier] = useState("");
@@ -40,10 +42,10 @@ const CreateShoppingPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [amountGiven, setAmountGiven] = useState(0);
   const [change, setChange] = useState(0);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning"
   >("success");
-  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [messageSnackbar, setMessageSnackbar] = useState("");
   const [productsList, setProductsList] = useState<any[]>([]);
   const [page, setPage] = useState(0);
@@ -51,7 +53,7 @@ const CreateShoppingPage: React.FC = () => {
 
   console.log(setProduct);
 
-  // Función para calcular el total de la venta
+  // Función para calcular el total de la compra
   const calculateTotal = () => {
     return productsList.reduce((acc, product) => acc + product.total, 0);
   };
@@ -68,7 +70,11 @@ const CreateShoppingPage: React.FC = () => {
   };
 
   const handleAmountGivenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const amount = parseFloat(e.target.value);
+    let amount = parseFloat(e.target.value);
+
+    if (isNaN(amount)) {
+      amount = 0;
+    }
     setAmountGiven(amount);
     setChange(amount - calculateTotal());
   };
@@ -187,22 +193,37 @@ const CreateShoppingPage: React.FC = () => {
       )
     );
   };
-
-  const handleConfirmPurchase = () => {
-    if (amountGiven < calculateTotal()) {
-      setSnackbarSeverity("error");
-      handleOpenSnackbar("Dinero insuficiente.");
-      return;
-    }
-
+  // Confirmar compra
+  const handleConfirmPurchase = async () => {
     if (productsList.length === 0) {
       setSnackbarSeverity("warning");
       handleOpenSnackbar("No hay productos agregados.");
       return;
     }
 
-    setSnackbarSeverity("success");
-    handleOpenSnackbar("Compra Confirmada");
+     try {
+          const shoppingData: ShoppingRequest = {
+            supplier: supplier ? { id: parseInt(supplier, 10) } : undefined,
+            shoppingProducts: productsList.map((product) => ({
+              product: { id: product.id },
+              quantity: product.quantity,
+            })),
+            amount: amountGiven,
+            total: calculateTotal(),
+          };
+      
+          await storeShoppings.getState().createShopping(shoppingData);
+      
+          setSnackbarSeverity("success");
+          handleOpenSnackbar("Compra creada exitosamente");
+      
+          // Reiniciar el formulario
+          handleReset();
+        } catch (error) {
+          console.error(error);
+          setSnackbarSeverity("error");
+          handleOpenSnackbar("Error al crear la compra");
+        }
   };
 
   useEffect(() => {

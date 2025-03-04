@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Table,
   TableHead,
@@ -9,47 +9,56 @@ import {
   Button,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
-import { compras as initialShopping } from "../../mocks/historyShopping";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { storeShoppings } from "../../../stores/shopping.store";
+import { dataStore } from "../../../stores/generalData.store";
 
 export default function HistoryShopping() {
+  const { listShoppings, getShoppings, deleteShopping } = storeShoppings();
+  const { getShoppingById } = dataStore();
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
-  const [compras, setCompras] = useState(initialShopping);
+  const [compras, setCompras] = useState(listShoppings);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedShoppingId, setSelectedShoppingId] = useState<
-    string | number | null
-  >(null);
+  const [selectedShoppingId, setSelectedShoppingId] = useState<number | null>(
+    null
+  );
   const pdfRef = useRef(null);
 
-  console.log(setSelectedShoppingId);
+  useEffect(() => {
+    getShoppings();
+  }, [getShoppings]);
+
+  useEffect(() => {
+    setCompras(listShoppings);
+  }, [listShoppings]);
 
   const filteredCompras = compras.filter((compra) =>
-    compra.proveedor.toLowerCase().includes(search.toLowerCase())
+    compra.supplier?.name
+      ? compra.supplier.name.toLowerCase().includes(search.toLowerCase())
+      : search === ""
   );
 
-  const getEstadoClase = (estado: string) => {
-    switch (estado) {
-      case "Completado":
-        return "bg-green-200 text-green-800";
-      case "Pendiente":
-        return "bg-yellow-200 text-yellow-800";
-      default:
-        return "bg-red-200 text-red-800";
-    }
-  };
-
-  const handleDeleteClick = (id: string | number) => {
+  const handleDeleteClick = (id: number) => {
     setSelectedShoppingId(id);
     setOpenDialog(true);
   };
 
-  const handleConfirmDelete = () => {
-    setCompras(compras.filter((p) => p.id !== selectedShoppingId));
-    setOpenDialog(false);
+  const handleConfirmDelete = async () => {
+    if (selectedShoppingId) {
+      try {
+        await deleteShopping(selectedShoppingId);
+        setCompras(
+          compras.filter((compra) => compra.id !== selectedShoppingId)
+        );
+        setOpenDialog(false);
+      } catch (error) {
+        console.error("Error al eliminar esta compra:", error);
+      }
+    }
   };
 
   // Función para exportar la vista a PDF
@@ -97,7 +106,6 @@ export default function HistoryShopping() {
               <TableCell>Proveedor</TableCell>
               <TableCell>Total</TableCell>
               <TableCell>Fecha</TableCell>
-              <TableCell>Estado</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -120,24 +128,30 @@ export default function HistoryShopping() {
               filteredCompras.map((compra) => (
                 <TableRow key={compra.id} className="hover:bg-gray-100">
                   <TableCell>{compra.id}</TableCell>
-                  <TableCell>{compra.proveedor}</TableCell>
-                  <TableCell>{compra.total}</TableCell>
-                  <TableCell>{compra.fecha}</TableCell>
+                  <TableCell>{compra.supplier?.name}</TableCell>
+                  <TableCell>${compra.total}</TableCell>
                   <TableCell>
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getEstadoClase(
-                        compra.estado
-                      )}`}
-                    >
-                      {compra.estado}
-                    </span>
+                    {compra.createdAt
+                      ? new Date(compra.createdAt).toLocaleString("es-ES", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })
+                      : "Fecha no disponible"}
                   </TableCell>
                   <TableCell>
                     <Button
                       variant="outlined"
                       startIcon={<Visibility />}
                       size="small"
-                      onClick={() => navigate(`/compras/editar`)}
+                      onClick={async () => {
+                        await getShoppingById(compra.id ?? 0);
+                        navigate(`/compras/editar`);
+                      }}
                     >
                       Ver
                     </Button>
@@ -145,7 +159,7 @@ export default function HistoryShopping() {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(compra.id)}
+                      onClick={() => handleDeleteClick(compra.id ?? 0)}
                       sx={{ ml: 1 }}
                     >
                       Eliminar
