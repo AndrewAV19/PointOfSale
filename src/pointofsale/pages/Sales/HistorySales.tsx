@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -8,6 +8,13 @@ import {
   TableBody,
   Input,
   Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Box,
+  Typography,
+  CircularProgress,
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
 import jsPDF from "jspdf";
@@ -20,25 +27,37 @@ export default function HistorySales() {
   const { listSales, getSales, deleteSale } = storeSales();
   const { getSaleById } = dataStore();
   const [search, setSearch] = useState("");
+  const [estadoFilter, setEstadoFilter] = useState("");
   const navigate = useNavigate();
   const [ventas, setVentas] = useState(listSales);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedSaleId, setSelectedSaleId] = useState<number | null>(null);
   const pdfRef = useRef(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getSales();
+    const fetchSales = async () => {
+      await getSales();
+      setLoading(false);
+    };
+    fetchSales();
   }, [getSales]);
 
   useEffect(() => {
     setVentas(listSales);
   }, [listSales]);
 
-  const filteredVentas = ventas.filter((venta) =>
-    venta.client?.name
-      ? venta.client.name.toLowerCase().includes(search.toLowerCase())
-      : search === ""
-  );
+  const filteredVentas = useMemo(() => {
+    return ventas.filter((venta) => {
+      const matchesSearch = venta.client?.name
+        ? venta.client.name.toLowerCase().includes(search.toLowerCase())
+        : search === "";
+
+      const matchesEstado = estadoFilter ? venta.state === estadoFilter : true;
+
+      return matchesSearch && matchesEstado;
+    });
+  }, [ventas, search, estadoFilter]);
 
   const getEstadoClase = (estado: string) => {
     switch (estado) {
@@ -68,7 +87,6 @@ export default function HistorySales() {
     }
   };
 
-  // Función para exportar la vista a PDF
   const exportToPDF = () => {
     const input = pdfRef.current;
     if (!input) return;
@@ -83,11 +101,26 @@ export default function HistorySales() {
     });
   };
 
-  return (
-    <div className="p-6 mx-auto bg-white shadow-lg rounded-lg"  ref={pdfRef}>
-      <h2 className="text-2xl font-bold mb-4">Historial de Ventas</h2>
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-      <div className="flex items-center gap-2 mb-4">
+  return (
+    <Box className="p-6 mx-auto bg-white shadow-lg rounded-lg" ref={pdfRef}>
+      <Typography variant="h4" component="h2" className="mb-4">
+        Historial de Ventas
+      </Typography>
+
+      <Box display="flex" alignItems="center" gap={2} mb={4}>
         <Input
           placeholder="Buscar por cliente..."
           value={search}
@@ -95,17 +128,41 @@ export default function HistorySales() {
           className="border px-2 py-1 rounded w-full"
           startAdornment={<Search className="text-gray-500" />}
         />
+        <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+          <InputLabel>Estado</InputLabel>
+          <Select
+            value={estadoFilter}
+            onChange={(e) => setEstadoFilter(e.target.value)}
+            label="Estado"
+            sx={{ width: "100%", height: 40 }}
+          >
+            <MenuItem value="">Todos</MenuItem>
+            <MenuItem value="pagada">Pagada</MenuItem>
+            <MenuItem value="pendiente">Pendiente</MenuItem>
+            <MenuItem value="cancelada">Cancelada</MenuItem>
+          </Select>
+        </FormControl>
         <Button
           variant="contained"
           color="primary"
           startIcon={<Download />}
           onClick={exportToPDF}
+          sx={{
+            padding: "8px 20px",
+            borderRadius: "8px",
+            textTransform: "none",
+            fontWeight: "bold",
+            fontSize: "16px",
+            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            transition: "all 0.3s ease",
+            
+          }}
         >
           Exportar
         </Button>
-      </div>
+      </Box>
 
-      <div className="overflow-x-auto">
+      <Box className="overflow-x-auto">
         <Table className="min-w-full border rounded-lg">
           <TableHead>
             <TableRow className="bg-gray-200">
@@ -121,15 +178,9 @@ export default function HistorySales() {
             {filteredVentas.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  <div
-                    style={{
-                      padding: "20px",
-                      fontSize: "16px",
-                      textAlign: "center",
-                    }}
-                  >
+                  <Typography variant="body1" className="py-5">
                     Aún no se han registrado ventas.
-                  </div>
+                  </Typography>
                 </TableCell>
               </TableRow>
             ) : (
@@ -188,9 +239,8 @@ export default function HistorySales() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </Box>
 
-      {/* Modal de Confirmación */}
       <ConfirmDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
@@ -198,6 +248,6 @@ export default function HistorySales() {
         title="Confirmar Eliminación"
         message="¿Estás seguro de que deseas eliminar esta venta?"
       />
-    </div>
+    </Box>
   );
 }
