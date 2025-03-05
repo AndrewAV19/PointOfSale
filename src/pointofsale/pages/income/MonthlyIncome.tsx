@@ -1,58 +1,114 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem } from '@mui/material';
-import { AttachMoney, TrendingUp, Receipt, DateRange } from '@mui/icons-material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+} from "@mui/material";
+import {
+  AttachMoney,
+  TrendingUp,
+  Receipt,
+  ChevronLeft,
+  ChevronRight,
+} from "@mui/icons-material";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { useIncomeStore } from "../../../stores/income.store";
 
 const MonthlyIncome: React.FC = () => {
-  // Datos de ejemplo
-  const [monthlyIncome, setMonthlyIncome] = useState(375000.75);
-  const [transactions, setTransactions] = useState(1260);
-  const [averageTicket, setAverageTicket] = useState(297.64);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const { monthlyIncome, getMonthlyIncome } = useIncomeStore();
 
-  // Función para generar datos según el mes y año seleccionados
-  const generateData = (month: number, year: number) => {
-    const targetDate = new Date(year, month);
+  useEffect(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
 
-    // Datos simulados para el gráfico de ingresos por día
-    const incomeByDay = Array.from({ length: 30 }, (_, i) => ({
-      day: `Día ${i + 1}`,
-      Ingreso: 10000 + (i * 500) + (month * 1000),
-    }));
+    getMonthlyIncome(year, month);
+  }, [currentDate, getMonthlyIncome]);
 
-    // Datos simulados para la tabla de transacciones recientes
-    const recentTransactions = [
-      { id: 1, date: `${targetDate.toISOString().split('T')[0]}`, amount: 1500.0 + (month * 100), method: 'Tarjeta' },
-      { id: 2, date: `${targetDate.toISOString().split('T')[0]}`, amount: 2000.0 + (month * 100), method: 'Efectivo' },
-      { id: 3, date: `${targetDate.toISOString().split('T')[0]}`, amount: 3000.0 + (month * 100), method: 'Transferencia' },
-      { id: 4, date: `${targetDate.toISOString().split('T')[0]}`, amount: 2500.0 + (month * 100), method: 'Tarjeta' },
+  let data = monthlyIncome;
+
+  // Función para obtener el nombre completo del mes
+  const getMonthName = (date: Date) => {
+    const monthNames = [
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Mayo",
+      "Junio",
+      "Julio",
+      "Agosto",
+      "Septiembre",
+      "Octubre",
+      "Noviembre",
+      "Diciembre",
     ];
-
-    // Datos simulados para los métodos de pago
-    const paymentMethods = [
-      { method: 'Efectivo', amount: 150000 + (month * 1000) },
-      { method: 'Tarjeta', amount: 200000 + (month * 1000) },
-      { method: 'Transferencia', amount: 25000 + (month * 500) },
-    ];
-
-
-    console.log(setMonthlyIncome,setTransactions,setAverageTicket)
-
-    return { incomeByDay, recentTransactions, paymentMethods, targetDate };
+    return monthNames[date.getMonth()];
   };
 
-  // Obtener datos según el mes y año seleccionados
-  const { incomeByDay, recentTransactions, paymentMethods, targetDate } = generateData(selectedMonth, selectedYear);
+  // Función para formatear la fecha como "Mes de Año"
+  const formatDate = (date: Date) => {
+    return `${getMonthName(date)} de ${date.getFullYear()}`;
+  };
 
-  // Lista de meses para el selector
-  const months = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
+  // Función para cambiar de mes (avanzar o retroceder)
+  const changeMonth = (direction: "prev" | "next") => {
+    const newDate = new Date(currentDate);
+    if (direction === "prev") {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
+  };
 
-  // Lista de años para el selector
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  // Función para generar todos los días del mes con ingresos
+  const generateAllDays = (
+    incomeByDay: { [key: string]: number },
+    date: Date
+  ) => {
+    const daysInMonth = new Date(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      0
+    ).getDate();
+    const days = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push({
+        day: `${i}/${getMonthName(date).substring(0, 3)}`,
+        Ingreso: incomeByDay[i] || 0,
+      });
+    }
+    return days;
+  };
+
+  // Convertir incomeByDay a un array para el gráfico
+  const incomeByDayArray = generateAllDays(
+    data?.incomeByDay ?? [],
+    currentDate
+  );
+
+  // Función para formatear el eje X (mostrar días de 5 en 5)
+  const formatXAxis = (tickItem: string) => {
+    const day = parseInt(tickItem.split("/")[0], 10);
+    return day % 5 === 0 ? tickItem : "";
+  };
 
   return (
     <Box className="p-6 bg-gray-50 min-h-screen">
@@ -60,30 +116,23 @@ const MonthlyIncome: React.FC = () => {
         Ingresos del Mes
       </Typography>
 
-      {/* Filtro de Mes y Año */}
+      {/* Selector de Mes y Año con flechas */}
       <Box className="mb-6 flex items-center gap-4">
-        <DateRange className="text-gray-600" />
-        <Select
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(Number(e.target.value))}
-          className="bg-white"
+        <IconButton
+          onClick={() => changeMonth("prev")}
+          className="text-gray-600"
         >
-          {months.map((month, index) => (
-            <MenuItem key={month} value={index}>{month}</MenuItem>
-          ))}
-        </Select>
-        <Select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="bg-white"
-        >
-          {years.map((year) => (
-            <MenuItem key={year} value={year}>{year}</MenuItem>
-          ))}
-        </Select>
-        <Typography className="text-gray-600">
-          {targetDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+          <ChevronLeft />
+        </IconButton>
+        <Typography variant="h6" className="font-bold">
+          {formatDate(currentDate)}
         </Typography>
+        <IconButton
+          onClick={() => changeMonth("next")}
+          className="text-gray-600"
+        >
+          <ChevronRight />
+        </IconButton>
       </Box>
 
       {/* Contenedor de Tarjetas */}
@@ -95,7 +144,7 @@ const MonthlyIncome: React.FC = () => {
             <AttachMoney className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${monthlyIncome.toLocaleString()}
+            ${data?.totalIncome.toLocaleString()}
           </Typography>
         </Paper>
 
@@ -106,7 +155,7 @@ const MonthlyIncome: React.FC = () => {
             <Receipt className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            {transactions}
+            {data?.numberOfTransactions}
           </Typography>
         </Paper>
 
@@ -117,7 +166,7 @@ const MonthlyIncome: React.FC = () => {
             <TrendingUp className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${averageTicket.toLocaleString()}
+            ${data?.averageTicket.toLocaleString()}
           </Typography>
         </Paper>
       </Box>
@@ -128,30 +177,15 @@ const MonthlyIncome: React.FC = () => {
           Ingresos por Día
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={incomeByDay}>
+          <BarChart data={incomeByDayArray}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" />
+            <XAxis dataKey="day" tickFormatter={formatXAxis} />
             <YAxis />
             <Tooltip />
             <Legend />
             <Bar dataKey="Ingreso" fill="#3b82f6" />
           </BarChart>
         </ResponsiveContainer>
-      </Paper>
-
-      {/* Tarjeta de Métodos de Pago */}
-      <Paper className="p-6 mb-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-        <Typography variant="h6" className="font-bold mb-4 text-gray-800">
-          Métodos de Pago
-        </Typography>
-        <Box className="flex flex-col gap-4">
-          {paymentMethods.map((pm) => (
-            <Box key={pm.method} className="flex justify-between items-center">
-              <Typography>{pm.method}</Typography>
-              <Typography className="font-bold">${pm.amount.toLocaleString()}</Typography>
-            </Box>
-          ))}
-        </Box>
       </Paper>
 
       {/* Tabla de Transacciones Recientes */}
@@ -165,15 +199,27 @@ const MonthlyIncome: React.FC = () => {
               <TableRow>
                 <TableCell>Fecha</TableCell>
                 <TableCell>Monto</TableCell>
-                <TableCell>Método</TableCell>
+                <TableCell>Atendido por</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {recentTransactions.map((tx) => (
+              {data?.lastFiveTransactions.map((tx) => (
                 <TableRow key={tx.id}>
-                  <TableCell>{tx.date}</TableCell>
-                  <TableCell>${tx.amount.toLocaleString()}</TableCell>
-                  <TableCell>{tx.method}</TableCell>
+                  <TableCell>
+                    {tx.createdAt
+                      ? new Date(tx.createdAt).toLocaleString("es-ES", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })
+                      : "Fecha no disponible"}
+                  </TableCell>
+                  <TableCell>${tx.total.toLocaleString()}</TableCell>
+                  <TableCell>{tx.user?.name}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

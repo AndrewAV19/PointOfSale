@@ -1,56 +1,84 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem } from '@mui/material';
-import { AttachMoney, TrendingUp, Receipt, DateRange } from '@mui/icons-material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+} from "@mui/material";
+import {
+  AttachMoney,
+  TrendingUp,
+  Receipt,
+  ChevronLeft,
+  ChevronRight,
+} from "@mui/icons-material";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { useIncomeStore } from "../../../stores/income.store";
 
 const DailyIncome: React.FC = () => {
-  // Datos de ejemplo
-  const [dailyIncome, setDailyIncome] = useState(12500.75);
-  const [transactions, setTransactions] = useState(42);
-  const [averageTicket, setAverageTicket] = useState(297.64);
-  const [selectedDaysAgo, setSelectedDaysAgo] = useState(0); 
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { dailyIncome, getDailyIncome } = useIncomeStore();
 
-  // Función para generar datos según los días atrás seleccionados
-  const generateData = (daysAgo: number) => {
-    const today = new Date();
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() - daysAgo);
+  useEffect(() => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    const day = selectedDate.getDate();
 
-    // Datos simulados para el gráfico de ingresos por hora
-    const incomeByHour = [
-      { hour: '09:00', Ingreso: 1200 + (daysAgo * 100) },
-      { hour: '10:00', Ingreso: 1800 + (daysAgo * 100) },
-      { hour: '11:00', Ingreso: 1500 + (daysAgo * 100) },
-      { hour: '12:00', Ingreso: 2200 + (daysAgo * 100) },
-      { hour: '13:00', Ingreso: 1900 + (daysAgo * 100) },
-      { hour: '14:00', Ingreso: 2100 + (daysAgo * 100) },
-      { hour: '15:00', Ingreso: 2400 + (daysAgo * 100) },
-      { hour: '16:00', Ingreso: 1800 + (daysAgo * 100) },
-      { hour: '17:00', Ingreso: 1600 + (daysAgo * 100) },
-    ];
+    getDailyIncome(year, month, day);
+  }, [selectedDate, getDailyIncome]);
 
-    // Datos simulados para la tabla de transacciones recientes
-    const recentTransactions = [
-      { id: 1, date: `${targetDate.toISOString().split('T')[0]} 09:15`, amount: 150.0 + (daysAgo * 10), method: 'Tarjeta' },
-      { id: 2, date: `${targetDate.toISOString().split('T')[0]} 10:30`, amount: 200.0 + (daysAgo * 10), method: 'Efectivo' },
-      { id: 3, date: `${targetDate.toISOString().split('T')[0]} 11:45`, amount: 300.0 + (daysAgo * 10), method: 'Transferencia' },
-      { id: 4, date: `${targetDate.toISOString().split('T')[0]} 12:00`, amount: 250.0 + (daysAgo * 10), method: 'Tarjeta' },
-    ];
+  let data = dailyIncome;
 
-    // Datos simulados para los métodos de pago
-    const paymentMethods = [
-      { method: 'Efectivo', amount: 5000 + (daysAgo * 100) },
-      { method: 'Tarjeta', amount: 7000 + (daysAgo * 100) },
-      { method: 'Transferencia', amount: 500 + (daysAgo * 50) },
-    ];
-
-    console.log(setDailyIncome,setTransactions,setAverageTicket)
-
-    return { incomeByHour, recentTransactions, paymentMethods, targetDate };
+  // Función para cambiar de día (avanzar o retroceder)
+  const changeDate = (direction: "prev" | "next") => {
+    setSelectedDate((prev) => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() + (direction === "prev" ? -1 : 1));
+      return newDate;
+    });
   };
 
-  // Obtener datos según los días atrás seleccionados
-  const { incomeByHour, recentTransactions, paymentMethods, targetDate } = generateData(selectedDaysAgo);
+  // Función para formatear la fecha como "día de mes, año"
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const generateAllHours = (incomeByHour: { [key: string]: number }) => {
+    const hours = [];
+    for (let i = 0; i < 24; i++) {
+      hours.push({
+        hour: `${i}:00`,
+        Ingreso: incomeByHour[i] || 0,
+      });
+    }
+    return hours;
+  };
+
+  const incomeByHourArray = generateAllHours(data?.incomeByHour ?? []);
+
+  const formatXAxis = (tickItem: string) => {
+    const hour = parseInt(tickItem.split(":")[0], 10);
+    return hour % 2 === 0 ? tickItem : "";
+  };
 
   return (
     <Box className="p-6 bg-gray-50 min-h-screen">
@@ -58,23 +86,23 @@ const DailyIncome: React.FC = () => {
         Ingresos del Día
       </Typography>
 
-      {/* Filtro de Días Atrás */}
+      {/* Selector de fecha con flechas */}
       <Box className="mb-6 flex items-center gap-4">
-        <DateRange className="text-gray-600" />
-        <Select
-          value={selectedDaysAgo}
-          onChange={(e) => setSelectedDaysAgo(Number(e.target.value))}
-          className="bg-white"
+        <IconButton
+          onClick={() => changeDate("prev")}
+          className="text-gray-600"
         >
-          <MenuItem value={0}>Hoy</MenuItem>
-          <MenuItem value={1}>Ayer</MenuItem>
-          <MenuItem value={2}>Hace 2 días</MenuItem>
-          <MenuItem value={3}>Hace 3 días</MenuItem>
-          <MenuItem value={7}>Hace 1 semana</MenuItem>
-        </Select>
-        <Typography className="text-gray-600">
-          {targetDate.toLocaleDateString()}
+          <ChevronLeft />
+        </IconButton>
+        <Typography variant="h6" className="font-bold">
+          {formatDate(selectedDate)}
         </Typography>
+        <IconButton
+          onClick={() => changeDate("next")}
+          className="text-gray-600"
+        >
+          <ChevronRight />
+        </IconButton>
       </Box>
 
       {/* Contenedor de Tarjetas */}
@@ -86,7 +114,7 @@ const DailyIncome: React.FC = () => {
             <AttachMoney className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${dailyIncome.toLocaleString()}
+            ${data?.totalIncome.toLocaleString()}
           </Typography>
         </Paper>
 
@@ -97,7 +125,7 @@ const DailyIncome: React.FC = () => {
             <Receipt className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            {transactions}
+            {data?.numberOfTransactions}
           </Typography>
         </Paper>
 
@@ -108,7 +136,7 @@ const DailyIncome: React.FC = () => {
             <TrendingUp className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${averageTicket.toLocaleString()}
+            ${data?.averageTicket.toLocaleString()}
           </Typography>
         </Paper>
       </Box>
@@ -119,30 +147,15 @@ const DailyIncome: React.FC = () => {
           Ingresos por Hora
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={incomeByHour}>
+          <BarChart data={incomeByHourArray}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="hour" />
+            <XAxis dataKey="hour" tickFormatter={formatXAxis} />
             <YAxis />
             <Tooltip />
             <Legend />
             <Bar dataKey="Ingreso" fill="#3b82f6" />
           </BarChart>
         </ResponsiveContainer>
-      </Paper>
-
-      {/* Tarjeta de Métodos de Pago */}
-      <Paper className="p-6 mb-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-        <Typography variant="h6" className="font-bold mb-4 text-gray-800">
-          Métodos de Pago
-        </Typography>
-        <Box className="flex flex-col gap-4">
-          {paymentMethods.map((pm) => (
-            <Box key={pm.method} className="flex justify-between items-center">
-              <Typography>{pm.method}</Typography>
-              <Typography className="font-bold">${pm.amount.toLocaleString()}</Typography>
-            </Box>
-          ))}
-        </Box>
       </Paper>
 
       {/* Tabla de Transacciones Recientes */}
@@ -156,23 +169,33 @@ const DailyIncome: React.FC = () => {
               <TableRow>
                 <TableCell>Fecha</TableCell>
                 <TableCell>Monto</TableCell>
-                <TableCell>Método</TableCell>
+                <TableCell>Atendido por</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {recentTransactions.map((tx) => (
+              {data?.lastFiveTransactions.map((tx) => (
                 <TableRow key={tx.id}>
-                  <TableCell>{tx.date}</TableCell>
-                  <TableCell>${tx.amount.toLocaleString()}</TableCell>
-                  <TableCell>{tx.method}</TableCell>
+                  <TableCell>
+                    {tx.createdAt
+                      ? new Date(tx.createdAt).toLocaleString("es-ES", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })
+                      : "Fecha no disponible"}
+                  </TableCell>
+                  <TableCell>${tx.total.toLocaleString()}</TableCell>
+                  <TableCell>{tx.user?.name}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
       </Paper>
-
-     
     </Box>
   );
 };

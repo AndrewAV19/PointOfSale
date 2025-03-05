@@ -1,60 +1,89 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem } from '@mui/material';
-import { AttachMoney, TrendingUp, Receipt, DateRange } from '@mui/icons-material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+} from "@mui/material";
+import {
+  AttachMoney,
+  TrendingUp,
+  Receipt,
+  ChevronLeft,
+  ChevronRight,
+} from "@mui/icons-material";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { useIncomeStore } from "../../../stores/income.store";
 
 const YearlyIncome: React.FC = () => {
-  // Datos de ejemplo
-  const [yearlyIncome, setYearlyIncome] = useState(4500000.75);
-  const [transactions, setTransactions] = useState(15120);
-  const [averageTicket, setAverageTicket] = useState(297.64);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const { yearlyIncome, getYearlyIncome } = useIncomeStore();
 
-  // Función para generar datos según el año seleccionado
-  const generateData = (year: number) => {
-    const targetDate = new Date(year, 0);
+  useEffect(() => {
+    getYearlyIncome(selectedYear);
+  }, [selectedYear, getYearlyIncome]);
 
-    // Datos simulados para el gráfico de ingresos por mes
-    const incomeByMonth = [
-      { month: 'Enero', Ingreso: 375000 + (year % 2020) * 10000 },
-      { month: 'Febrero', Ingreso: 400000 + (year % 2020) * 10000 },
-      { month: 'Marzo', Ingreso: 420000 + (year % 2020) * 10000 },
-      { month: 'Abril', Ingreso: 390000 + (year % 2020) * 10000 },
-      { month: 'Mayo', Ingreso: 410000 + (year % 2020) * 10000 },
-      { month: 'Junio', Ingreso: 430000 + (year % 2020) * 10000 },
-      { month: 'Julio', Ingreso: 440000 + (year % 2020) * 10000 },
-      { month: 'Agosto', Ingreso: 450000 + (year % 2020) * 10000 },
-      { month: 'Septiembre', Ingreso: 460000 + (year % 2020) * 10000 },
-      { month: 'Octubre', Ingreso: 470000 + (year % 2020) * 10000 },
-      { month: 'Noviembre', Ingreso: 480000 + (year % 2020) * 10000 },
-      { month: 'Diciembre', Ingreso: 500000 + (year % 2020) * 10000 },
+  let data = yearlyIncome;
+
+  // Función para obtener el nombre abreviado del mes
+  const getMonthName = (month: number) => {
+    const monthNames = [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
     ];
-
-    // Datos simulados para la tabla de transacciones recientes
-    const recentTransactions = [
-      { id: 1, date: `${targetDate.toISOString().split('T')[0]}`, amount: 15000.0 + (year % 2020) * 1000, method: 'Tarjeta' },
-      { id: 2, date: `${targetDate.toISOString().split('T')[0]}`, amount: 20000.0 + (year % 2020) * 1000, method: 'Efectivo' },
-      { id: 3, date: `${targetDate.toISOString().split('T')[0]}`, amount: 30000.0 + (year % 2020) * 1000, method: 'Transferencia' },
-      { id: 4, date: `${targetDate.toISOString().split('T')[0]}`, amount: 25000.0 + (year % 2020) * 1000, method: 'Tarjeta' },
-    ];
-
-    // Datos simulados para los métodos de pago
-    const paymentMethods = [
-      { method: 'Efectivo', amount: 1800000 + (year % 2020) * 100000 },
-      { method: 'Tarjeta', amount: 2400000 + (year % 2020) * 100000 },
-      { method: 'Transferencia', amount: 300000 + (year % 2020) * 50000 },
-    ];
-
-    console.log(setYearlyIncome,setTransactions,setAverageTicket)
-
-    return { incomeByMonth, recentTransactions, paymentMethods, targetDate };
+    return monthNames[month - 1];
   };
 
-  // Obtener datos según el año seleccionado
-  const { incomeByMonth, recentTransactions, paymentMethods, targetDate } = generateData(selectedYear);
+  // Función para generar todos los meses del año con ingresos
+  const generateAllMonths = (incomeByMonth: { [key: string]: number }) => {
+    const months = [];
+    for (let i = 1; i <= 12; i++) {
+      months.push({
+        month: `${getMonthName(i)}`,
+        Ingreso: incomeByMonth[i] || 0,
+      });
+    }
+    return months;
+  };
 
-  // Lista de años para el selector
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  // Convertir incomeByMonth a un array para el gráfico
+  const incomeByMonthArray = generateAllMonths(data?.incomeByMonth ?? []);
+
+  // Función para formatear el eje X (mostrar todos los meses)
+  const formatXAxis = (tickItem: string) => {
+    return tickItem; // Mostrar todos los meses
+  };
+
+  // Función para cambiar de año (avanzar o retroceder)
+  const changeYear = (direction: "prev" | "next") => {
+    const newYear = direction === "prev" ? selectedYear - 1 : selectedYear + 1;
+    setSelectedYear(newYear);
+  };
 
   return (
     <Box className="p-6 bg-gray-50 min-h-screen">
@@ -62,21 +91,23 @@ const YearlyIncome: React.FC = () => {
         Ingresos del Año
       </Typography>
 
-      {/* Filtro de Año */}
+      {/* Selector de Año con flechas */}
       <Box className="mb-6 flex items-center gap-4">
-        <DateRange className="text-gray-600" />
-        <Select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="bg-white"
+        <IconButton
+          onClick={() => changeYear("prev")}
+          className="text-gray-600"
         >
-          {years.map((year) => (
-            <MenuItem key={year} value={year}>{year}</MenuItem>
-          ))}
-        </Select>
-        <Typography className="text-gray-600">
-          {targetDate.toLocaleDateString('es-ES', { year: 'numeric' })}
+          <ChevronLeft />
+        </IconButton>
+        <Typography variant="h6" className="font-bold">
+          {selectedYear}
         </Typography>
+        <IconButton
+          onClick={() => changeYear("next")}
+          className="text-gray-600"
+        >
+          <ChevronRight />
+        </IconButton>
       </Box>
 
       {/* Contenedor de Tarjetas */}
@@ -88,7 +119,7 @@ const YearlyIncome: React.FC = () => {
             <AttachMoney className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${yearlyIncome.toLocaleString()}
+            ${data?.totalIncome.toLocaleString()}
           </Typography>
         </Paper>
 
@@ -99,7 +130,7 @@ const YearlyIncome: React.FC = () => {
             <Receipt className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            {transactions}
+            {data?.numberOfTransactions}
           </Typography>
         </Paper>
 
@@ -110,7 +141,7 @@ const YearlyIncome: React.FC = () => {
             <TrendingUp className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${averageTicket.toLocaleString()}
+            ${data?.averageTicket.toLocaleString()}
           </Typography>
         </Paper>
       </Box>
@@ -121,31 +152,15 @@ const YearlyIncome: React.FC = () => {
           Ingresos por Mes
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={incomeByMonth}>
+          <BarChart data={incomeByMonthArray}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
+            <XAxis dataKey="month" tickFormatter={formatXAxis} />
             <YAxis />
             <Tooltip />
             <Legend />
-          
-            <Bar dataKey="Egreso" fill="#fb7185" /> 
+            <Bar dataKey="Ingreso" fill="#3b82f6" />
           </BarChart>
         </ResponsiveContainer>
-      </Paper>
-
-      {/* Tarjeta de Métodos de Pago */}
-      <Paper className="p-6 mb-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-        <Typography variant="h6" className="font-bold mb-4 text-gray-800">
-          Métodos de Pago
-        </Typography>
-        <Box className="flex flex-col gap-4">
-          {paymentMethods.map((pm) => (
-            <Box key={pm.method} className="flex justify-between items-center">
-              <Typography>{pm.method}</Typography>
-              <Typography className="font-bold">${pm.amount.toLocaleString()}</Typography>
-            </Box>
-          ))}
-        </Box>
       </Paper>
 
       {/* Tabla de Transacciones Recientes */}
@@ -159,15 +174,27 @@ const YearlyIncome: React.FC = () => {
               <TableRow>
                 <TableCell>Fecha</TableCell>
                 <TableCell>Monto</TableCell>
-                <TableCell>Método</TableCell>
+                <TableCell>Atendido por</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {recentTransactions.map((tx) => (
+              {data?.lastFiveTransactions.map((tx) => (
                 <TableRow key={tx.id}>
-                  <TableCell>{tx.date}</TableCell>
-                  <TableCell>${tx.amount.toLocaleString()}</TableCell>
-                  <TableCell>{tx.method}</TableCell>
+                  <TableCell>
+                    {tx.createdAt
+                      ? new Date(tx.createdAt).toLocaleString("es-ES", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })
+                      : "Fecha no disponible"}
+                  </TableCell>
+                  <TableCell>${tx.total.toLocaleString()}</TableCell>
+                  <TableCell>{tx.user?.name}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -13,10 +13,10 @@ const useLogout = () => {
     localStorage.removeItem("products-data"); 
     localStorage.removeItem("categories-data"); 
     localStorage.removeItem("sales-data"); 
+    localStorage.removeItem("income-data"); 
     localStorage.removeItem("shoppings-data"); 
     localStorage.removeItem("id_usuario"); 
     localStorage.removeItem("name_usuario"); 
-  
     navigate("/auth/login"); 
   };
 
