@@ -50,6 +50,7 @@ const CreateShoppingPage: React.FC = () => {
   const [productsList, setProductsList] = useState<any[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const userId = parseInt(localStorage.getItem("id_usuario") ?? "0", 10);
 
   console.log(setProduct);
 
@@ -210,6 +211,7 @@ const CreateShoppingPage: React.FC = () => {
             })),
             amount: amountGiven,
             total: calculateTotal(),
+            user: { id: userId },
           };
       
           await storeShoppings.getState().createShopping(shoppingData);

@@ -1,9 +1,11 @@
 import { Clients } from "./clients.interface";
 import { Product } from "./product.interface";
+import { Users } from "./users.interface";
 
 export interface Sale {
     id?: number;
     client?: Clients;
+    user?: Users;
     saleProducts: SaleProduct[];
     amount: number;
     state: string;
@@ -20,6 +22,7 @@ export interface SaleProduct {
 
 export interface SaleRequest {
     client?: { id: number };
+    user?: { id: number };
     saleProducts: SaleProductRequest[];
     amount?: number;
     state?: string;

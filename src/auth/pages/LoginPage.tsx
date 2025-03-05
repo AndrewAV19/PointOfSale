@@ -65,6 +65,8 @@ const LoginPage: React.FC = () => {
 
       // Si la autenticación es exitosa, guarda el token en el localStorage
       localStorage.setItem("token", response.token);
+      localStorage.setItem("id_usuario", response.id.toString());
+      localStorage.setItem("name_usuario", response.name);
       localStorage.setItem("loginTime", new Date().toISOString());
       localStorage.setItem("roles", response.roles);
 
