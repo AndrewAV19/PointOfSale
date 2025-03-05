@@ -56,7 +56,29 @@ const AddUser: React.FC = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [rolesSeleccionados, setRolesSeleccionados] = useState<number[]>([]);
-  console.log(setRolesSeleccionados)
+  console.log("roles seleccionados: ",setRolesSeleccionados)
+
+  const handleRoleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const selectedRole = event.target.value as string;
+
+    // Asignar los roles correspondientes
+    if (selectedRole === "Administrador") {
+      setRolesSeleccionados([1, 2]);
+    } else if (selectedRole === "Empleado") {
+      setRolesSeleccionados([2]);
+    }
+
+    const syntheticEvent = {
+      ...event,
+      target: {
+        ...event.target,
+        name: "roleIds",
+        value: selectedRole,
+      },
+    } as React.ChangeEvent<HTMLInputElement>;
+
+    handleChange(syntheticEvent);
+  }
 
   const handleConfirm = async () => {
     // Validar campos obligatorios
@@ -252,9 +274,9 @@ const AddUser: React.FC = () => {
               select
               fullWidth
               label="Rol"
-              name="rol"
+              name="roleIds"
               value={user.roleIds}
-              onChange={handleChange}
+              onChange={handleRoleChange}
               variant="outlined"
               required
               sx={{ width: "30%" }}

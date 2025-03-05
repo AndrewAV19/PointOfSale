@@ -131,7 +131,11 @@ export default function HistoryUsers() {
                   <TableCell>
                     <ul>
                       {user.roles.map((role) => (
-                        <li key={role.id}>{role.name}</li>
+                        <li key={role.id}>
+                          {role.name === "ROLE_USER"
+                            ? "ROLE_EMPLEADO"
+                            : role.name}
+                        </li>
                       ))}
                     </ul>
                   </TableCell>

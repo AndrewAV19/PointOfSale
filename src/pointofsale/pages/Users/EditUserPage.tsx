@@ -24,7 +24,7 @@ import {
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
-import { UserRequest, Users } from '../../interfaces/users.interface';
+import { UserRequest, Users } from "../../interfaces/users.interface";
 import { storeUsers } from "../../../stores/users.store";
 import { dataStore } from "../../../stores/generalData.store";
 import { useNavigate } from "react-router-dom";
@@ -70,7 +70,11 @@ const EditUserPage: React.FC = () => {
   const { selectedUser } = dataStore();
   const { deleteUser } = storeUsers();
 
-  const { form: user, handleChange, resetForm } = useForm(
+  const {
+    form: user,
+    handleChange,
+    resetForm,
+  } = useForm(
     selectedUser ? convertToUserRequest(selectedUser) : initialUserState
   );
 
@@ -88,15 +92,15 @@ const EditUserPage: React.FC = () => {
   useEffect(() => {
     if (selectedUser) {
       const userRequest = convertToUserRequest(selectedUser);
-      console.log(userRequest)
+      console.log(userRequest);
       resetForm();
     }
   }, [selectedUser]);
 
-  console.log(setRolesSeleccionados)
+  console.log(setRolesSeleccionados);
 
   const handleSaveChanges = async () => {
-    if (!validateRequiredFields(user,[])) {
+    if (!validateRequiredFields(user, [])) {
       showSnackbar(
         "error",
         "Por favor, completa todos los campos obligatorios."
@@ -140,6 +144,28 @@ const EditUserPage: React.FC = () => {
     } catch (error) {
       showSnackbar("error", "Error al actualizar el usuario.");
     }
+  };
+
+  const handleRoleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const selectedRole = event.target.value as string;
+
+    // Asignar los roles correspondientes
+    if (selectedRole === "Administrador") {
+      setRolesSeleccionados([1, 2]);
+    } else if (selectedRole === "Empleado") {
+      setRolesSeleccionados([2]);
+    }
+
+    const syntheticEvent = {
+      ...event,
+      target: {
+        ...event.target,
+        name: "roleIds",
+        value: selectedRole,
+      },
+    } as React.ChangeEvent<HTMLInputElement>;
+
+    handleChange(syntheticEvent);
   };
 
   const getUpdatedFields = (
@@ -193,6 +219,19 @@ const EditUserPage: React.FC = () => {
 
   const handleGoBack = () => {
     navigate(-1);
+  };
+
+  // Función para determinar el rol del usuario
+  const getRoleName = (roleIds: number[]): string => {
+    if (roleIds.includes(1) && roleIds.includes(2)) {
+      return "Administrador";
+    } else if (roleIds.includes(1)) {
+      return "Administrador";
+    } else if (roleIds.includes(2)) {
+      return "Empleado";
+    } else {
+      return "Empleado"; // Por defecto
+    }
   };
 
   return (
@@ -388,9 +427,9 @@ const EditUserPage: React.FC = () => {
               select
               fullWidth
               label="Rol"
-              name="rol"
-              value={user.roleIds}
-              onChange={handleChange}
+              name="roleIds"
+              value={getRoleName(user.roleIds)}
+              onChange={handleRoleChange}
               variant="outlined"
               required
               sx={{ width: "30%" }}
