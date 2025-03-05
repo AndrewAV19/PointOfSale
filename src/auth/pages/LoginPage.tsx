@@ -172,9 +172,9 @@ const LoginPage: React.FC = () => {
           </Button>
         </form>
         <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-          ¿No tienes una cuenta?{" "}
+          ¿Olvidaste tu contraseña?{" "}
           <button
-            onClick={() => navigate("/auth/register")}
+            onClick={() => navigate("/auth/reset-password")}
             style={{
               color: "#1976d2",
               textDecoration: "none",
@@ -186,7 +186,7 @@ const LoginPage: React.FC = () => {
               font: "inherit",
             }}
           >
-            Regístrate
+            Restablecer contraseña
           </button>
         </Typography>
       </Paper>
