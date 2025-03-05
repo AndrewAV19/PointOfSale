@@ -1,57 +1,85 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem } from '@mui/material';
-import { MoneyOff, TrendingDown, Receipt, DateRange } from '@mui/icons-material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-const DailyExpenses: React.FC = () => {
-  // Datos de ejemplo
-  const [dailyExpenses, setDailyExpenses] = useState(8500.50);
-  const [transactions, setTransactions] = useState(35);
-  const [averageExpense, setAverageExpense] = useState(242.87);
-  const [selectedDaysAgo, setSelectedDaysAgo] = useState(0);
-
-  // Función para generar datos según los días atrás seleccionados
-  const generateData = (daysAgo: number) => {
-    const today = new Date();
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() - daysAgo);
-
-    // Datos simulados para el gráfico de egresos por hora
-    const expensesByHour = [
-      { hour: '09:00', Egreso: 800 + (daysAgo * 50) },
-      { hour: '10:00', Egreso: 1200 + (daysAgo * 50) },
-      { hour: '11:00', Egreso: 900 + (daysAgo * 50) },
-      { hour: '12:00', Egreso: 1500 + (daysAgo * 50) },
-      { hour: '13:00', Egreso: 1300 + (daysAgo * 50) },
-      { hour: '14:00', Egreso: 1100 + (daysAgo * 50) },
-      { hour: '15:00', Egreso: 1400 + (daysAgo * 50) },
-      { hour: '16:00', Egreso: 1000 + (daysAgo * 50) },
-      { hour: '17:00', Egreso: 900 + (daysAgo * 50) },
-    ];
-
-    // Datos simulados para la tabla de transacciones recientes
-    const recentTransactions = [
-      { id: 1, date: `${targetDate.toISOString().split('T')[0]} 09:15`, amount: 100.0 + (daysAgo * 10), category: 'Suministros' },
-      { id: 2, date: `${targetDate.toISOString().split('T')[0]} 10:30`, amount: 150.0 + (daysAgo * 10), category: 'Servicios' },
-      { id: 3, date: `${targetDate.toISOString().split('T')[0]} 11:45`, amount: 200.0 + (daysAgo * 10), category: 'Equipo' },
-      { id: 4, date: `${targetDate.toISOString().split('T')[0]} 12:00`, amount: 180.0 + (daysAgo * 10), category: 'Suministros' },
-    ];
-
-    // Datos simulados para las categorías de gastos
-    const expenseCategories = [
-      { category: 'Suministros', amount: 3000 + (daysAgo * 100) },
-      { category: 'Servicios', amount: 4000 + (daysAgo * 100) },
-      { category: 'Equipo', amount: 1500 + (daysAgo * 50) },
-    ];
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+} from "@mui/material";
+import {
+  MoneyOff,
+  TrendingDown,
+  Receipt,
+  ChevronLeft,
+  ChevronRight,
+} from "@mui/icons-material";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { useExpenseStore } from "../../../stores/expenses.store";
 
 
-    console.log(setDailyExpenses,setTransactions,setAverageExpense)
+const DailyExpense: React.FC = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const { dailyExpense, getDailyExpense } = useExpenseStore();
 
-    return { expensesByHour, recentTransactions, expenseCategories, targetDate };
+  useEffect(() => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    const day = selectedDate.getDate();
+
+    getDailyExpense(year, month, day);
+  }, [selectedDate, getDailyExpense]);
+
+  let data = dailyExpense;
+
+  // Función para cambiar de día (avanzar o retroceder)
+  const changeDate = (direction: "prev" | "next") => {
+    setSelectedDate((prev) => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() + (direction === "prev" ? -1 : 1));
+      return newDate;
+    });
   };
 
-  // Obtener datos según los días atrás seleccionados
-  const { expensesByHour, recentTransactions, expenseCategories, targetDate } = generateData(selectedDaysAgo);
+  // Función para formatear la fecha como "día de mes, año"
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const generateAllHours = (expenseByHour: { [key: string]: number }) => {
+    const hours = [];
+    for (let i = 0; i < 24; i++) {
+      hours.push({
+        hour: `${i}:00`,
+        Egreso: expenseByHour[i] || 0,
+      });
+    }
+    return hours;
+  };
+
+  const expenseByHourArray = generateAllHours(data?.expenseByHour ?? []);
+
+  const formatXAxis = (tickItem: string) => {
+    const hour = parseInt(tickItem.split(":")[0], 10);
+    return hour % 2 === 0 ? tickItem : "";
+  };
 
   return (
     <Box className="p-6 bg-gray-50 min-h-screen">
@@ -59,57 +87,57 @@ const DailyExpenses: React.FC = () => {
         Egresos del Día
       </Typography>
 
-      {/* Filtro de Días Atrás */}
+      {/* Selector de fecha con flechas */}
       <Box className="mb-6 flex items-center gap-4">
-        <DateRange className="text-gray-600" />
-        <Select
-          value={selectedDaysAgo}
-          onChange={(e) => setSelectedDaysAgo(Number(e.target.value))}
-          className="bg-white"
+        <IconButton
+          onClick={() => changeDate("prev")}
+          className="text-gray-600"
         >
-          <MenuItem value={0}>Hoy</MenuItem>
-          <MenuItem value={1}>Ayer</MenuItem>
-          <MenuItem value={2}>Hace 2 días</MenuItem>
-          <MenuItem value={3}>Hace 3 días</MenuItem>
-          <MenuItem value={7}>Hace 1 semana</MenuItem>
-        </Select>
-        <Typography className="text-gray-600">
-          {targetDate.toLocaleDateString()}
+          <ChevronLeft />
+        </IconButton>
+        <Typography variant="h6" className="font-bold">
+          {formatDate(selectedDate)}
         </Typography>
+        <IconButton
+          onClick={() => changeDate("next")}
+          className="text-gray-600"
+        >
+          <ChevronRight />
+        </IconButton>
       </Box>
 
       {/* Contenedor de Tarjetas */}
       <Box className="flex flex-col md:flex-row gap-6 mb-8">
         {/* Tarjeta de Egresos Totales */}
-        <Paper className="flex-1 p-6 bg-gradient-to-r from-rose-300 to-rose-400 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+        <Paper className="flex-1 p-6 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
           <Box className="flex items-center justify-between">
             <Typography variant="h6">Egresos Totales</Typography>
             <MoneyOff className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${dailyExpenses.toLocaleString()}
+            ${data?.totalExpense.toLocaleString()}
           </Typography>
         </Paper>
 
         {/* Tarjeta de Transacciones */}
-        <Paper className="flex-1 p-6 bg-gradient-to-r from-orange-300 to-orange-400 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+        <Paper className="flex-1 p-6 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
           <Box className="flex items-center justify-between">
             <Typography variant="h6">Transacciones</Typography>
             <Receipt className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            {transactions}
+            {data?.numberOfTransactions}
           </Typography>
         </Paper>
 
-        {/* Tarjeta de Gasto Promedio */}
-        <Paper className="flex-1 p-6 bg-gradient-to-r from-pink-300 to-pink-400 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+        {/* Tarjeta de Ticket Promedio */}
+        <Paper className="flex-1 p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
           <Box className="flex items-center justify-between">
-            <Typography variant="h6">Gasto Promedio</Typography>
+            <Typography variant="h6">Ticket Promedio</Typography>
             <TrendingDown className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${averageExpense.toLocaleString()}
+            ${data?.averageTicket.toLocaleString()}
           </Typography>
         </Paper>
       </Box>
@@ -120,30 +148,15 @@ const DailyExpenses: React.FC = () => {
           Egresos por Hora
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={expensesByHour}>
+          <BarChart data={expenseByHourArray}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="hour" />
+            <XAxis dataKey="hour" tickFormatter={formatXAxis} />
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="Egreso" fill="#fb7185" /> {/* Color rose-400 */}
+            <Bar dataKey="Egreso" fill="#ef4444" />
           </BarChart>
         </ResponsiveContainer>
-      </Paper>
-
-      {/* Tarjeta de Categorías de Gastos */}
-      <Paper className="p-6 mb-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-        <Typography variant="h6" className="font-bold mb-4 text-gray-800">
-          Categorías de Gastos
-        </Typography>
-        <Box className="flex flex-col gap-4">
-          {expenseCategories.map((ec) => (
-            <Box key={ec.category} className="flex justify-between items-center">
-              <Typography>{ec.category}</Typography>
-              <Typography className="font-bold">${ec.amount.toLocaleString()}</Typography>
-            </Box>
-          ))}
-        </Box>
       </Paper>
 
       {/* Tabla de Transacciones Recientes */}
@@ -157,15 +170,27 @@ const DailyExpenses: React.FC = () => {
               <TableRow>
                 <TableCell>Fecha</TableCell>
                 <TableCell>Monto</TableCell>
-                <TableCell>Categoría</TableCell>
+                <TableCell>Atendido por</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {recentTransactions.map((tx) => (
+              {data?.lastFiveTransactions.map((tx) => (
                 <TableRow key={tx.id}>
-                  <TableCell>{tx.date}</TableCell>
-                  <TableCell>${tx.amount.toLocaleString()}</TableCell>
-                  <TableCell>{tx.category}</TableCell>
+                  <TableCell>
+                    {tx.createdAt
+                      ? new Date(tx.createdAt).toLocaleString("es-ES", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })
+                      : "Fecha no disponible"}
+                  </TableCell>
+                  <TableCell>${tx.total.toLocaleString()}</TableCell>
+                  <TableCell>{tx.user?.name}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -176,4 +201,4 @@ const DailyExpenses: React.FC = () => {
   );
 };
 
-export default DailyExpenses;
+export default DailyExpense;

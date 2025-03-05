@@ -14,6 +14,7 @@ const useLogout = () => {
     localStorage.removeItem("categories-data"); 
     localStorage.removeItem("sales-data"); 
     localStorage.removeItem("income-data"); 
+    localStorage.removeItem("expense-data"); 
     localStorage.removeItem("shoppings-data"); 
     localStorage.removeItem("id_usuario"); 
     localStorage.removeItem("name_usuario"); 

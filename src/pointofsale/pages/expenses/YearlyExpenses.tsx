@@ -1,60 +1,89 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem } from '@mui/material';
-import { MoneyOff, TrendingDown, Receipt, DateRange } from '@mui/icons-material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+} from "@mui/material";
+import {
+  MoneyOff,
+  TrendingDown,
+  Receipt,
+  ChevronLeft,
+  ChevronRight,
+} from "@mui/icons-material";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { useExpenseStore } from "../../../stores/expenses.store";
 
-const YearlyExpenses: React.FC = () => {
-  // Datos de ejemplo
-  const [yearlyExpenses, setYearlyExpenses] = useState(3000000.50);
-  const [transactions, setTransactions] = useState(11400);
-  const [averageExpense, setAverageExpense] = useState(263.16);
+const YearlyExpense: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const { yearlyExpense, getYearlyExpense } = useExpenseStore();
 
-  // Función para generar datos según el año seleccionado
-  const generateData = (year: number) => {
-    const targetDate = new Date(year, 0);
+  useEffect(() => {
+    getYearlyExpense(selectedYear);
+  }, [selectedYear, getYearlyExpense]);
 
-    // Datos simulados para el gráfico de egresos por mes
-    const expensesByMonth = [
-      { month: 'Enero', Egreso: 250000 + (year % 2020) * 10000 },
-      { month: 'Febrero', Egreso: 260000 + (year % 2020) * 10000 },
-      { month: 'Marzo', Egreso: 270000 + (year % 2020) * 10000 },
-      { month: 'Abril', Egreso: 240000 + (year % 2020) * 10000 },
-      { month: 'Mayo', Egreso: 280000 + (year % 2020) * 10000 },
-      { month: 'Junio', Egreso: 290000 + (year % 2020) * 10000 },
-      { month: 'Julio', Egreso: 300000 + (year % 2020) * 10000 },
-      { month: 'Agosto', Egreso: 310000 + (year % 2020) * 10000 },
-      { month: 'Septiembre', Egreso: 320000 + (year % 2020) * 10000 },
-      { month: 'Octubre', Egreso: 330000 + (year % 2020) * 10000 },
-      { month: 'Noviembre', Egreso: 340000 + (year % 2020) * 10000 },
-      { month: 'Diciembre', Egreso: 350000 + (year % 2020) * 10000 },
+  let data = yearlyExpense;
+
+  // Función para obtener el nombre abreviado del mes
+  const getMonthName = (month: number) => {
+    const monthNames = [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
     ];
-
-    // Datos simulados para la tabla de transacciones recientes
-    const recentTransactions = [
-      { id: 1, date: `${targetDate.toISOString().split('T')[0]}`, amount: 12000.0 + (year % 2020) * 1000, category: 'Suministros' },
-      { id: 2, date: `${targetDate.toISOString().split('T')[0]}`, amount: 15000.0 + (year % 2020) * 1000, category: 'Servicios' },
-      { id: 3, date: `${targetDate.toISOString().split('T')[0]}`, amount: 20000.0 + (year % 2020) * 1000, category: 'Equipo' },
-      { id: 4, date: `${targetDate.toISOString().split('T')[0]}`, amount: 18000.0 + (year % 2020) * 1000, category: 'Suministros' },
-    ];
-
-    // Datos simulados para las categorías de gastos
-    const expenseCategories = [
-      { category: 'Suministros', amount: 1200000 + (year % 2020) * 100000 },
-      { category: 'Servicios', amount: 1400000 + (year % 2020) * 100000 },
-      { category: 'Equipo', amount: 400000 + (year % 2020) * 50000 },
-    ];
-
-    return { expensesByMonth, recentTransactions, expenseCategories, targetDate };
+    return monthNames[month - 1];
   };
 
-  console.log(setYearlyExpenses,setTransactions,setAverageExpense)
+  // Función para generar todos los meses del año con egresos
+  const generateAllMonths = (expenseByMonth: { [key: string]: number }) => {
+    const months = [];
+    for (let i = 1; i <= 12; i++) {
+      months.push({
+        month: `${getMonthName(i)}`,
+        Egreso: expenseByMonth[i] || 0,
+      });
+    }
+    return months;
+  };
 
-  // Obtener datos según el año seleccionado
-  const { expensesByMonth, recentTransactions, expenseCategories, targetDate } = generateData(selectedYear);
+  // Convertir expenseByMonth a un array para el gráfico
+  const expenseByMonthArray = generateAllMonths(data?.expenseByMonth ?? []);
 
-  // Lista de años para el selector
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  // Función para formatear el eje X (mostrar todos los meses)
+  const formatXAxis = (tickItem: string) => {
+    return tickItem; // Mostrar todos los meses
+  };
+
+  // Función para cambiar de año (avanzar o retroceder)
+  const changeYear = (direction: "prev" | "next") => {
+    const newYear = direction === "prev" ? selectedYear - 1 : selectedYear + 1;
+    setSelectedYear(newYear);
+  };
 
   return (
     <Box className="p-6 bg-gray-50 min-h-screen">
@@ -62,55 +91,57 @@ const YearlyExpenses: React.FC = () => {
         Egresos del Año
       </Typography>
 
-      {/* Filtro de Año */}
+      {/* Selector de Año con flechas */}
       <Box className="mb-6 flex items-center gap-4">
-        <DateRange className="text-gray-600" />
-        <Select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="bg-white"
+        <IconButton
+          onClick={() => changeYear("prev")}
+          className="text-gray-600"
         >
-          {years.map((year) => (
-            <MenuItem key={year} value={year}>{year}</MenuItem>
-          ))}
-        </Select>
-        <Typography className="text-gray-600">
-          {targetDate.toLocaleDateString('es-ES', { year: 'numeric' })}
+          <ChevronLeft />
+        </IconButton>
+        <Typography variant="h6" className="font-bold">
+          {selectedYear}
         </Typography>
+        <IconButton
+          onClick={() => changeYear("next")}
+          className="text-gray-600"
+        >
+          <ChevronRight />
+        </IconButton>
       </Box>
 
       {/* Contenedor de Tarjetas */}
       <Box className="flex flex-col md:flex-row gap-6 mb-8">
         {/* Tarjeta de Egresos Totales */}
-        <Paper className="flex-1 p-6 bg-gradient-to-r from-rose-300 to-rose-400 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+        <Paper className="flex-1 p-6 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
           <Box className="flex items-center justify-between">
             <Typography variant="h6">Egresos Totales</Typography>
             <MoneyOff className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${yearlyExpenses.toLocaleString()}
+            ${data?.totalExpense.toLocaleString()}
           </Typography>
         </Paper>
 
         {/* Tarjeta de Transacciones */}
-        <Paper className="flex-1 p-6 bg-gradient-to-r from-orange-300 to-orange-400 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+        <Paper className="flex-1 p-6 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
           <Box className="flex items-center justify-between">
             <Typography variant="h6">Transacciones</Typography>
             <Receipt className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            {transactions}
+            {data?.numberOfTransactions}
           </Typography>
         </Paper>
 
-        {/* Tarjeta de Gasto Promedio */}
-        <Paper className="flex-1 p-6 bg-gradient-to-r from-pink-300 to-pink-400 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+        {/* Tarjeta de Ticket Promedio */}
+        <Paper className="flex-1 p-6 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow">
           <Box className="flex items-center justify-between">
-            <Typography variant="h6">Gasto Promedio</Typography>
+            <Typography variant="h6">Ticket Promedio</Typography>
             <TrendingDown className="text-3xl" />
           </Box>
           <Typography variant="h4" className="mt-4 font-bold">
-            ${averageExpense.toLocaleString()}
+            ${data?.averageTicket.toLocaleString()}
           </Typography>
         </Paper>
       </Box>
@@ -121,30 +152,15 @@ const YearlyExpenses: React.FC = () => {
           Egresos por Mes
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={expensesByMonth}>
+          <BarChart data={expenseByMonthArray}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
+            <XAxis dataKey="month" tickFormatter={formatXAxis} />
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="Egreso" fill="#fb7185" /> {/* Color rose-400 */}
+            <Bar dataKey="Egreso" fill="#ef4444" />
           </BarChart>
         </ResponsiveContainer>
-      </Paper>
-
-      {/* Tarjeta de Categorías de Gastos */}
-      <Paper className="p-6 mb-8 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-        <Typography variant="h6" className="font-bold mb-4 text-gray-800">
-          Categorías de Gastos
-        </Typography>
-        <Box className="flex flex-col gap-4">
-          {expenseCategories.map((ec) => (
-            <Box key={ec.category} className="flex justify-between items-center">
-              <Typography>{ec.category}</Typography>
-              <Typography className="font-bold">${ec.amount.toLocaleString()}</Typography>
-            </Box>
-          ))}
-        </Box>
       </Paper>
 
       {/* Tabla de Transacciones Recientes */}
@@ -158,15 +174,27 @@ const YearlyExpenses: React.FC = () => {
               <TableRow>
                 <TableCell>Fecha</TableCell>
                 <TableCell>Monto</TableCell>
-                <TableCell>Categoría</TableCell>
+                <TableCell>Atendido por</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {recentTransactions.map((tx) => (
+              {data?.lastFiveTransactions.map((tx) => (
                 <TableRow key={tx.id}>
-                  <TableCell>{tx.date}</TableCell>
-                  <TableCell>${tx.amount.toLocaleString()}</TableCell>
-                  <TableCell>{tx.category}</TableCell>
+                  <TableCell>
+                    {tx.createdAt
+                      ? new Date(tx.createdAt).toLocaleString("es-ES", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })
+                      : "Fecha no disponible"}
+                  </TableCell>
+                  <TableCell>${tx.total.toLocaleString()}</TableCell>
+                  <TableCell>{tx.user?.name}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -177,4 +205,4 @@ const YearlyExpenses: React.FC = () => {
   );
 };
 
-export default YearlyExpenses;
+export default YearlyExpense;

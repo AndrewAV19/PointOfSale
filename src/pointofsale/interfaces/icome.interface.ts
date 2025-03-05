@@ -7,8 +7,7 @@ export interface DailyIncomeDTO {
     incomeByHour: { [hour: number]: number };
     lastFiveTransactions: Sale[];
   }
-  
-  // Interfaz para el DTO de ingreso mensual
+
   export interface MonthlyIncomeDTO {
     totalIncome: number;
     numberOfTransactions: number;
@@ -17,7 +16,6 @@ export interface DailyIncomeDTO {
     lastFiveTransactions: Sale[];
   }
   
-  // Interfaz para el DTO de ingreso anual
   export interface YearlyIncomeDTO {
     totalIncome: number;
     numberOfTransactions: number;
