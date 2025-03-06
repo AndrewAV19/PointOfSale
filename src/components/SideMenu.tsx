@@ -14,6 +14,7 @@ import {
 import { ExpandLess, ExpandMore, Storefront as StorefrontIcon } from "@mui/icons-material";
 import { navigationMenu } from "./NavigationMenu";
 import useLogout from "../hooks/useLogout";
+import { storeDataPointOfSale } from "../stores/data-point-of-sale.store";
 
 
 const StyledDrawer = styled(Drawer)({
@@ -57,11 +58,17 @@ const LogoContainer = styled("div")({
 });
 
 const SideMenu: React.FC = () => {
+   const { getData, data } = storeDataPointOfSale();
   const navigate = useNavigate();
   const location = useLocation();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<string | null>(null);
   const handleLogout = useLogout();
+
+
+  useEffect(() => {
+    getData();
+  }, [getData]);
 
   useEffect(() => {
     // Detectar si la ruta pertenece a un subItem
@@ -100,7 +107,7 @@ const SideMenu: React.FC = () => {
       <LogoContainer>
       <StorefrontIcon sx={{ fontSize: 60, color: "#ECF0F1" }} />
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          Mi Tiendita
+          {data?.name}
         </Typography>
       </LogoContainer>
 

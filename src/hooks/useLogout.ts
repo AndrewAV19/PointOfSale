@@ -18,6 +18,7 @@ const useLogout = () => {
     localStorage.removeItem("shoppings-data"); 
     localStorage.removeItem("id_usuario"); 
     localStorage.removeItem("name_usuario"); 
+    localStorage.removeItem("data-point-of-sale"); 
     navigate("/auth/login"); 
   };
 
