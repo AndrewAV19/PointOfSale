@@ -58,7 +58,7 @@ const LogoContainer = styled("div")({
 });
 
 const SideMenu: React.FC = () => {
-   const { getData, data } = storeDataPointOfSale();
+  const { getData, data } = storeDataPointOfSale();
   const navigate = useNavigate();
   const location = useLocation();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);

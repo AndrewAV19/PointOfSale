@@ -30,6 +30,7 @@ import YearlyExpenses from "../pages/expenses/YearlyExpenses";
 import PendingPaymentsClientsHistory from "../pages/Clients/PendingPaymentsClientsHistory";
 import PendingPaymentsClient from "../pages/Clients/PendingPaymentsClient";
 import EditProductPage from "../pages/Inventory/EditProductPage";
+import Settings from "../pages/Settings/Settings";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -74,6 +75,8 @@ const PointOfSaleRoutes = () => {
         <Route path="/egresos/anio" element={<YearlyExpenses />}></Route>
         
         <Route path="/acerca-de" element={<AboutPage />}></Route>
+
+        <Route path="/configuraciones" element={<Settings />}></Route>
       </Route>
 
       <Route path="/*" element={<Navigate to="/" />}></Route>

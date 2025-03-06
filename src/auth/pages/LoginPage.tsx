@@ -19,6 +19,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { LoginResponse } from "../interfaces/loginResponse.interface";
 import { AuthService } from "../services/AuthService";
+import { LicenciaService } from "../../services/licencia.service";
+import ActivarLicenciaModal from "../../pointofsale/modales/ModalActivarLicencia";
+
 
 interface Credentials {
   username: string;
@@ -36,6 +39,8 @@ const LoginPage: React.FC = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
     "error"
   );
+  const [openActivarLicenciaModal, setOpenActivarLicenciaModal] =
+    useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -49,15 +54,26 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Verificar si los campos están vacíos
     if (!credentials.username || !credentials.password) {
       setSnackbarSeverity("error");
       setMessageSnackbar("Debes llenar todos los campos");
       setOpenSnackbar(true);
-      return; // Detener el envío del formulario si algún campo está vacío
+      return;
     }
 
     try {
+      // Verificar si la licencia está activada
+      const licenciaActivada = await LicenciaService.verificarActivacion();
+
+      if (!licenciaActivada) {
+        setSnackbarSeverity("error");
+        setMessageSnackbar("Aún no has activado la licencia");
+        setOpenSnackbar(true);
+        setOpenActivarLicenciaModal(true);
+        return;
+      }
+
+      // Si la licencia está activada, proceder con el inicio de sesión
       const response: LoginResponse = await AuthService.login({
         email: credentials.username,
         password: credentials.password,
@@ -82,6 +98,20 @@ const LoginPage: React.FC = () => {
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
+  };
+
+  const handleActivarLicencia = async (claveLicencia: string) => {
+    try {
+      await LicenciaService.activarLicencia(claveLicencia);
+      setSnackbarSeverity("success");
+      setMessageSnackbar("Licencia activada correctamente");
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error("Error al activar la licencia:", error);
+      setSnackbarSeverity("error");
+      setMessageSnackbar("Error al activar la licencia");
+      setOpenSnackbar(true);
+    }
   };
 
   return (
@@ -214,6 +244,12 @@ const LoginPage: React.FC = () => {
           {messageSnackbar}
         </Alert>
       </Snackbar>
+
+      <ActivarLicenciaModal
+        open={openActivarLicenciaModal}
+        onClose={() => setOpenActivarLicenciaModal(false)}
+        onConfirm={handleActivarLicencia}
+      />
     </Box>
   );
 };
