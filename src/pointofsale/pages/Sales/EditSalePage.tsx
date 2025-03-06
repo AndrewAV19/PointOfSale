@@ -45,11 +45,12 @@ import {
   SaleProductRequest,
   SaleRequest,
 } from "../../interfaces/sales.interface";
-import ConfirmDialog from "../../../components/ConfirmDeleteModal";
+import ConfirmCancelDialog from "../../../components/ConfirmCancelModal";
+type SaleStatus = "pendiente" | "pagada" | "cancelada";
 
 const EditSalePage: React.FC = () => {
   const { selectedSale } = dataStore();
-  const { deleteSale, updateSale } = storeSales();
+  const { cancelSale, updateSale } = storeSales();
   const navigate = useNavigate();
   const [client, setClient] = useState(selectedSale?.client?.id);
   const [openModalProducts, setOpenModalProducts] = useState(false);
@@ -61,9 +62,16 @@ const EditSalePage: React.FC = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState<
     "success" | "error" | "warning"
   >("success");
-  const [saleStatus, setSaleStatus] = useState<"pendiente" | "pagada">(
-    selectedSale?.state === "pendiente" ? "pendiente" : "pagada"
+  const getInitialSaleStatus = (state?: string): SaleStatus => {
+    if (state === "pendiente") return "pendiente";
+    if (state === "pagada") return "pagada";
+    return "cancelada";
+  };
+
+  const [saleStatus, setSaleStatus] = useState<SaleStatus>(
+    getInitialSaleStatus(selectedSale?.state)
   );
+
   const [openDialog, setOpenDialog] = useState(false);
   const [messageSnackbar, setMessageSnackbar] = useState("");
   const [productsList, setProductsList] = useState<SaleProduct[]>(
@@ -72,6 +80,8 @@ const EditSalePage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [hasChanges, setHasChanges] = useState(false);
+
+  const isDisabled = saleStatus === "cancelada";
 
   // Función para calcular el total de la venta
   const calculateTotal = () => {
@@ -222,9 +232,9 @@ const EditSalePage: React.FC = () => {
   };
 
   const handleSaleStatusChange = (
-    event: SelectChangeEvent<"pendiente" | "pagada">
+    event: SelectChangeEvent<"pendiente" | "pagada" | "cancelada">
   ) => {
-    setSaleStatus(event.target.value as "pendiente" | "pagada");
+    setSaleStatus(event.target.value as "pendiente" | "pagada" | "cancelada");
     setHasChanges(true);
   };
 
@@ -281,7 +291,7 @@ const EditSalePage: React.FC = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await deleteSale(selectedSale?.id ?? 0);
+      await cancelSale(selectedSale?.id ?? 0);
       navigate(`/ventas/historial`);
     } catch (error) {
       console.error("Error al eliminar la venta:", error);
@@ -320,12 +330,12 @@ const EditSalePage: React.FC = () => {
                 label="Código cliente"
                 fullWidth
                 value={client}
-                disabled
+                disabled={isDisabled}
                 slotProps={{
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton>
+                        <IconButton disabled={isDisabled}>
                           <SearchIcon />
                         </IconButton>
                       </InputAdornment>
@@ -342,11 +352,15 @@ const EditSalePage: React.FC = () => {
                 fullWidth
                 value={product ? product.id : ""}
                 onChange={handleProductIdChange}
+                disabled={isDisabled}
                 slotProps={{
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setOpenModalProducts(true)}>
+                        <IconButton
+                          onClick={() => setOpenModalProducts(true)}
+                          disabled={isDisabled}
+                        >
                           <SearchIcon />
                         </IconButton>
                       </InputAdornment>
@@ -373,6 +387,7 @@ const EditSalePage: React.FC = () => {
                 fullWidth
                 value={quantity}
                 onChange={handleQuantityChange}
+                disabled={isDisabled}
                 slotProps={{
                   input: {
                     startAdornment: (
@@ -390,6 +405,7 @@ const EditSalePage: React.FC = () => {
                 fullWidth
                 value={amountGiven}
                 onChange={handleAmountGivenChange}
+                disabled={isDisabled}
                 slotProps={{
                   input: {
                     startAdornment: (
@@ -410,6 +426,7 @@ const EditSalePage: React.FC = () => {
                   value={saleStatus}
                   onChange={handleSaleStatusChange}
                   label="Estado de la venta"
+                  disabled={isDisabled}
                 >
                   <MenuItem value="pendiente">Pendiente</MenuItem>
                   <MenuItem value="pagada">Pagada</MenuItem>
@@ -454,6 +471,7 @@ const EditSalePage: React.FC = () => {
               }}
               startIcon={<AddShoppingCartIcon />}
               onClick={handleAddProduct}
+              disabled={isDisabled}
             >
               Agregar Producto
             </Button>
@@ -496,6 +514,7 @@ const EditSalePage: React.FC = () => {
                           onClick={() =>
                             handleDecreaseQuantity(saleProduct.product.id!)
                           }
+                          disabled={isDisabled}
                         >
                           -
                         </IconButton>
@@ -506,6 +525,7 @@ const EditSalePage: React.FC = () => {
                           onClick={() =>
                             handleIncreaseQuantity(saleProduct.product.id!)
                           }
+                          disabled={isDisabled}
                         >
                           +
                         </IconButton>
@@ -521,6 +541,7 @@ const EditSalePage: React.FC = () => {
                         onClick={() =>
                           handleDeleteProduct(saleProduct.product.id!)
                         }
+                        disabled={isDisabled}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -577,14 +598,13 @@ const EditSalePage: React.FC = () => {
             type="submit"
             onClick={handleConfirmEdit}
             disabled={
-              saleStatus === "pagada"
+              isDisabled ||
+              (saleStatus === "pagada"
                 ? productsList.length === 0 ||
                   amountGiven <= 0 ||
                   amountGiven < calculateTotal() ||
                   !hasChanges
-                : productsList.length === 0 ||
-                
-                  !hasChanges
+                : productsList.length === 0 || !hasChanges)
             }
           >
             Actualizar Venta
@@ -605,8 +625,9 @@ const EditSalePage: React.FC = () => {
               boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
             }}
             onClick={handleDeleteClick}
+            disabled={isDisabled}
           >
-            Eliminar Venta
+            Cancelar Venta
           </Button>
 
           <Button
@@ -625,6 +646,7 @@ const EditSalePage: React.FC = () => {
               },
               boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
             }}
+            disabled={isDisabled}
           >
             Limpiar Campos
           </Button>
@@ -655,12 +677,12 @@ const EditSalePage: React.FC = () => {
           {messageSnackbar}
         </Alert>
       </Snackbar>
-      <ConfirmDialog
+      <ConfirmCancelDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onConfirm={handleConfirmDelete}
-        title="Confirmar Eliminación"
-        message="¿Estás seguro de que deseas eliminar esta venta?"
+        title="Confirmar Cancelación"
+        message="¿Estás seguro de que deseas cancelar esta venta?"
       />
     </Container>
   );

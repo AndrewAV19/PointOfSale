@@ -19,12 +19,12 @@ import {
 import { Search, Visibility, Download } from "@mui/icons-material";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import ConfirmDialog from "../../../components/ConfirmDeleteModal";
 import { storeSales } from "../../../stores/sales.store";
 import { dataStore } from "../../../stores/generalData.store";
+import ConfirmCancelDialog from "../../../components/ConfirmCancelModal";
 
 export default function HistorySales() {
-  const { listSales, getSales, deleteSale } = storeSales();
+  const { listSales, getSales, cancelSale } = storeSales();
   const { getSaleById } = dataStore();
   const [search, setSearch] = useState("");
   const [estadoFilter, setEstadoFilter] = useState("");
@@ -70,19 +70,28 @@ export default function HistorySales() {
     }
   };
 
-  const handleDeleteClick = (id: number) => {
+  const handleCancelClick = (id: number) => {
     setSelectedSaleId(id);
     setOpenDialog(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmCancel = async () => {
     if (selectedSaleId) {
       try {
-        await deleteSale(selectedSaleId);
-        setVentas(ventas.filter((venta) => venta.id !== selectedSaleId));
+        await cancelSale(selectedSaleId);
+  
+        setVentas((prevVentas) =>
+          prevVentas.map((venta) =>
+            venta.id === selectedSaleId
+              ? { ...venta, state: "cancelada" }
+              : venta
+          )
+        );
+  
+        // Cierra el diálogo de confirmación
         setOpenDialog(false);
       } catch (error) {
-        console.error("Error al eliminar esta venta:", error);
+        console.error("Error al cancelar esta venta:", error);
       }
     }
   };
@@ -228,10 +237,10 @@ export default function HistorySales() {
                       variant="outlined"
                       color="error"
                       size="small"
-                      onClick={() => handleDeleteClick(venta.id ?? 0)}
+                      onClick={() => handleCancelClick(venta.id ?? 0)}
                       sx={{ ml: 1 }}
                     >
-                      Eliminar
+                      Cancelar
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -241,12 +250,12 @@ export default function HistorySales() {
         </Table>
       </Box>
 
-      <ConfirmDialog
+      <ConfirmCancelDialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
-        onConfirm={handleConfirmDelete}
-        title="Confirmar Eliminación"
-        message="¿Estás seguro de que deseas eliminar esta venta?"
+        onConfirm={handleConfirmCancel}
+        title="Confirmar Cancelación"
+        message="¿Estás seguro de que deseas cancelar esta venta?"
       />
     </Box>
   );

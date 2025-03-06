@@ -2,7 +2,6 @@ import api from "../lib/axios";
 import { ClientDebtDTO } from "../pointofsale/interfaces/clients.interface";
 import { Sale, SaleRequest } from "../pointofsale/interfaces/sales.interface";
 
-
 export class SaleService {
   static readonly getSales = async (): Promise<Sale[]> => {
     try {
@@ -84,16 +83,12 @@ export class SaleService {
       });
 
       if (Object.keys(updatedFields).length > 0) {
-        const response = await api.put<Sale>(
-          `/sales/${id}`,
-          updatedFields,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + localStorage.getItem("token"),
-            },
-          }
-        );
+        const response = await api.put<Sale>(`/sales/${id}`, updatedFields, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        });
 
         console.log(response.data);
         return response.data;
@@ -122,14 +117,38 @@ export class SaleService {
     }
   };
 
-  static readonly getClientDebts = async (clientId: number): Promise<ClientDebtDTO[]> => {
+  static readonly cancelSale = async (id: number): Promise<void> => {
     try {
-      const response = await api.get<ClientDebtDTO[]>(`/sales/client-debts/${clientId}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-      });
+      await api.put(
+        `/sales/cancel/${id}`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        } // Configuración
+      );
+      console.log(`Sale with id ${id} canceled successfully`);
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error al cancelar la venta");
+    }
+  };
+
+  static readonly getClientDebts = async (
+    clientId: number
+  ): Promise<ClientDebtDTO[]> => {
+    try {
+      const response = await api.get<ClientDebtDTO[]>(
+        `/sales/client-debts/${clientId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
       console.log(response.data);
       return response.data;
     } catch (error) {

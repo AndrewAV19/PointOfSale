@@ -10,12 +10,10 @@ interface SaleState {
 
   createSale: (dataSend: SaleRequest) => Promise<Sale>;
 
-  updateSale: (
-    id: number,
-    dataSend: Partial<SaleRequest>
-  ) => Promise<Sale>;
+  updateSale: (id: number, dataSend: Partial<SaleRequest>) => Promise<Sale>;
 
   deleteSale: (id: number) => Promise<void>;
+  cancelSale: (id: number) => Promise<void>;
 }
 
 const saleStore: StateCreator<SaleState> = (set, get) => ({
@@ -77,6 +75,24 @@ const saleStore: StateCreator<SaleState> = (set, get) => ({
       console.error(error);
       set({ loading: false });
       throw new Error("Error al eliminar la venta");
+    }
+  },
+
+  cancelSale: async (id: number) => {
+    try {
+      set({ loading: true });
+
+      await SaleService.cancelSale(id);
+
+      const updatedSales = get().listSales.map((sale) =>
+        sale.id === id ? { ...sale, state: "cancelada" } : sale
+      );
+
+      set({ listSales: updatedSales, loading: false });
+    } catch (error) {
+      console.error(error);
+      set({ loading: false });
+      throw new Error("Error al cancelar la venta");
     }
   },
 });
