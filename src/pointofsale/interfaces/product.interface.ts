@@ -4,6 +4,7 @@ import { Supplier } from "./supplier.interface";
 export interface Product {
     id?: number;
     name: string;
+    barCode?: string;
     description?: string;
     price: number;
     stock?: number; 
@@ -12,11 +13,12 @@ export interface Product {
     costPrice: number; 
     discount?: number; 
     taxRate?: number;
-    images?: string[]; 
+    image?: string; 
   }
 
   export interface ProductRequest {
     id?: number;
+    barCode?: string;
     name: string;
     description?: string;
     price: number;
@@ -26,6 +28,6 @@ export interface Product {
     costPrice: number; 
     discount?: number; 
     taxRate?: number;
-    images?: string[]; 
+    image?: string; 
   }
   

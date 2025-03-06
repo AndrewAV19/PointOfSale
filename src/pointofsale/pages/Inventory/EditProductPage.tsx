@@ -40,6 +40,7 @@ const EditProductPage: React.FC = () => {
   const { selectedProduct } = dataStore();
   const { deleteProduct } = storeProducts();
   const [product, setProduct] = useState({
+    barCode: selectedProduct?.barCode ?? "",
     name: selectedProduct?.name ?? "",
     description: selectedProduct?.description ?? "",
     price: selectedProduct?.price ?? 0,
@@ -54,7 +55,7 @@ const EditProductPage: React.FC = () => {
   const [category, setCategory] = useState(
     selectedProduct?.category?.id?.toString() ?? ""
   );
-  const [preview, setPreview] = useState(selectedProduct?.images?.[0] ?? null);
+  const [preview, setPreview] = useState(selectedProduct?.image ?? "");
   const [openModal, setOpenModal] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [openSupplierModal, setOpenSupplierModal] = useState(false);
@@ -105,6 +106,7 @@ const EditProductPage: React.FC = () => {
 
   const handleReset = () => {
     setProduct({
+      barCode: selectedProduct?.barCode ?? "",
       name: selectedProduct?.name ?? "",
       description: selectedProduct?.description ?? "",
       price: selectedProduct?.price ?? 0,
@@ -117,7 +119,7 @@ const EditProductPage: React.FC = () => {
       suppliers: selectedProduct?.suppliers || ([] as Supplier[]),
     });
     setCategory(selectedProduct?.category?.id?.toString() ?? "");
-    setPreview(null);
+    setPreview("");
   };
 
   const handleOpenSnackbar = (message: string) => {
@@ -127,6 +129,17 @@ const EditProductPage: React.FC = () => {
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
+  };
+
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => {
+        reject(new Error("Error al leer el archivo: " + error.type));
+      };
+    });
   };
 
   const handleConfirmSale = async () => {
@@ -170,8 +183,13 @@ const EditProductPage: React.FC = () => {
         ? Number(category)
         : 0;
 
+      const imageBase64 = product.photo
+        ? await convertImageToBase64(product.photo)
+        : selectedProduct?.image ?? "";
+
       // Actualizar el producto usando el store
       await storeProducts.getState().updateProduct(selectedProduct?.id ?? 0, {
+        barCode: product.barCode,
         name: product.name,
         description: product.description,
         price: product.price,
@@ -181,7 +199,7 @@ const EditProductPage: React.FC = () => {
         costPrice: product.costPrice,
         discount: product.discount ? product.discountPercentage : undefined,
         taxRate: 0,
-        images: [],
+        image: imageBase64,
       });
 
       // Mostrar mensaje de éxito
@@ -259,6 +277,18 @@ const EditProductPage: React.FC = () => {
             accept="image/*"
             onChange={handleFileChange}
             style={{ display: "none" }}
+          />
+        </Box>
+
+        {/* Código de barras */}
+        <Box className="mb-6">
+          <TextField
+            fullWidth
+            label="Código de barras"
+            name="barCode"
+            value={product.barCode}
+            onChange={handleChange}
+            variant="outlined"
           />
         </Box>
 

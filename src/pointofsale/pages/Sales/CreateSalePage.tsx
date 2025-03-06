@@ -126,6 +126,7 @@ const CreateSalePage: React.FC = () => {
           quantity,
           price: product.price,
           total: product.price * quantity,
+          image: product.image,
         };
         setProductsList((prevList) => [...prevList, newProduct]);
       }
@@ -414,7 +415,7 @@ const CreateSalePage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell></TableCell>
+                <TableCell>Imagen</TableCell>
                 <TableCell>Producto</TableCell>
                 <TableCell>Cantidad</TableCell>
                 <TableCell>Precio Unitario</TableCell>

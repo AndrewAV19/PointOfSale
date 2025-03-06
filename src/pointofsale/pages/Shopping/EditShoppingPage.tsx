@@ -431,7 +431,7 @@ const EditShoppingPage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell></TableCell>
+                <TableCell>Imagen</TableCell>
                 <TableCell>Producto</TableCell>
                 <TableCell>Cantidad</TableCell>
                 <TableCell>Precio Unitario</TableCell>
@@ -447,7 +447,7 @@ const EditShoppingPage: React.FC = () => {
                     <TableCell>
                       <Avatar
                         alt={product.product.name}
-                        src={product.product.images?.[0]}
+                        src={product.product.image}
                       />
                     </TableCell>
                     <TableCell>{product.product.name}</TableCell>

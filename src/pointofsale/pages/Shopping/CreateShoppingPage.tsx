@@ -118,6 +118,7 @@ const CreateShoppingPage: React.FC = () => {
           quantity,
           costPrice: product.costPrice,
           total: product.costPrice * quantity,
+          image: product.image,
         };
         setProductsList((prevList) => [...prevList, newProduct]);
       }
@@ -388,7 +389,7 @@ const CreateShoppingPage: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell></TableCell>
+                <TableCell>Imagen</TableCell>
                 <TableCell>Producto</TableCell>
                 <TableCell>Cantidad</TableCell>
                 <TableCell>Precio Unitario</TableCell>

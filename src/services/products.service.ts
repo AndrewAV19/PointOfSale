@@ -34,6 +34,7 @@ export class ProductService {
   };
 
   static readonly createProduct = async (dataSend: {
+    barCode?: string;
     name: string;
     description?: string;
     price: number;
@@ -43,7 +44,7 @@ export class ProductService {
     costPrice: number;
     discount?: number;
     taxRate?: number;
-    images?: string[];
+    image?: string;
   }): Promise<Product> => {
     try {
       const response = await api.post<Product>("/products", dataSend, {
@@ -63,6 +64,7 @@ export class ProductService {
   static readonly updateProduct = async (
     id: number,
     dataSend: {
+      barCode?: string;
       name?: string;
       description?: string;
       price?: number;
@@ -72,7 +74,7 @@ export class ProductService {
       costPrice?: number;
       discount?: number;
       taxRate?: number;
-      images?: string[];
+      image?: string;
     }
   ): Promise<Product> => {
     try {
@@ -85,6 +87,7 @@ export class ProductService {
         value: any;
         compare?: (a: any, b: any) => boolean;
       }[] = [
+        { key: "barCode", value: dataSend.barCode },
         { key: "name", value: dataSend.name },
         { key: "description", value: dataSend.description },
         { key: "price", value: dataSend.price },
@@ -94,7 +97,7 @@ export class ProductService {
         { key: "costPrice", value: dataSend.costPrice },
         { key: "discount", value: dataSend.discount },
         { key: "taxRate", value: dataSend.taxRate },
-        { key: "images", value: dataSend.images },
+        { key: "image", value: dataSend.image },
       ];
 
       fieldsToCheck.forEach(({ key, value, compare }) => {

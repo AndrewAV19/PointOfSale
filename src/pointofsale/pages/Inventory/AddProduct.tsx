@@ -33,6 +33,7 @@ import { storeProducts } from "../../../stores/products.store";
 
 const AddProduct: React.FC = () => {
   const [product, setProduct] = useState({
+    barCode: "",
     name: "",
     description: "",
     price: 0,
@@ -94,6 +95,7 @@ const AddProduct: React.FC = () => {
 
   const handleReset = () => {
     setProduct({
+      barCode: "",
       name: "",
       description: "",
       price: 0,
@@ -155,10 +157,18 @@ const AddProduct: React.FC = () => {
         .filter((supplier) => supplier.id !== undefined)
         .map((supplier) => ({ id: supplier.id as number }));
 
-        const categoryIdAsNumber = !isNaN(Number(category)) ? Number(category) : 0;
+      const categoryIdAsNumber = !isNaN(Number(category))
+        ? Number(category)
+        : 0;
+
+      // Convertir la imagen a Base64
+      const imageBase64 = product.photo
+        ? await convertImageToBase64(product.photo)
+        : "";
 
       // Crear el producto usando el store
-        await storeProducts.getState().createProduct({
+      await storeProducts.getState().createProduct({
+        barCode: product.barCode,
         name: product.name,
         description: product.description,
         price: product.price,
@@ -168,7 +178,7 @@ const AddProduct: React.FC = () => {
         costPrice: product.costPrice,
         discount: product.discount ? product.discountPercentage : undefined,
         taxRate: 0,
-        images: [],
+        image: imageBase64,
       });
 
       // Mostrar mensaje de éxito
@@ -183,6 +193,18 @@ const AddProduct: React.FC = () => {
       handleOpenSnackbar("Error al crear el producto.");
       console.error(error);
     }
+  };
+
+  // Función para convertir la imagen a Base64
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => {
+        reject(new Error("Error al leer el archivo: " + error.type));
+      };
+    });
   };
 
   const handleRemoveSupplier = (supplierId: number) => {
@@ -222,6 +244,18 @@ const AddProduct: React.FC = () => {
             accept="image/*"
             onChange={handleFileChange}
             style={{ display: "none" }}
+          />
+        </Box>
+
+        {/* Código de barras */}
+        <Box className="mb-6">
+          <TextField
+            fullWidth
+            label="Código de barras"
+            name="barCode"
+            value={product.barCode}
+            onChange={handleChange}
+            variant="outlined"
           />
         </Box>
 

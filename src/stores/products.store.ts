@@ -10,6 +10,7 @@ interface ProductState {
   getProducts: () => Promise<void>; 
 
   createProduct: (dataSend: {
+    barCode?: string;
     name: string;
     description?: string;
     price: number;
@@ -19,12 +20,13 @@ interface ProductState {
     costPrice: number;
     discount?: number;
     taxRate?: number;
-    images?: string[];
+    image?: string;
   }) => Promise<Product>; 
 
   updateProduct: (
     id: number,
     dataSend: {
+      barCode?: string;
       name?: string;
       description?: string;
       price?: number;
@@ -34,7 +36,7 @@ interface ProductState {
       costPrice?: number;
       discount?: number;
       taxRate?: number;
-      images?: string[];
+      image?: string;
     }
   ) => Promise<Product>;
 

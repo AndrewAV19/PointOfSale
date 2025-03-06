@@ -102,12 +102,12 @@ export default function HistoryProducts() {
         <Table className="min-w-full border rounded-lg">
           <TableHead>
             <TableRow className="bg-gray-200">
-              <TableCell>ID</TableCell>
+              <TableCell>Imagen</TableCell>
               <TableCell>Nombre</TableCell>
+              <TableCell>Código de barras</TableCell>
               <TableCell>Categoría</TableCell>
               <TableCell>Precio</TableCell>
               <TableCell>Stock</TableCell>
-              <TableCell>Foto</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -129,12 +129,27 @@ export default function HistoryProducts() {
             ) : (
               filteredProducts.map((producto) => (
                 <TableRow key={producto.id} className="hover:bg-gray-100">
-                  <TableCell>{producto.id}</TableCell>
+                  <TableCell>
+                    {producto.image ? (
+                      <img
+                        src={producto.image}
+                        alt={producto.name}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      ""
+                    )}
+                  </TableCell>
                   <TableCell>{producto.name}</TableCell>
+                  <TableCell>{producto.barCode}</TableCell>
                   <TableCell>{producto.category?.name}</TableCell>
-                  <TableCell>{producto.price}</TableCell>
+                  <TableCell>${producto.price}</TableCell>
                   <TableCell>{producto.stock}</TableCell>
-                  <TableCell>{producto.images}</TableCell>
+
                   <TableCell>
                     <Button
                       variant="outlined"
