@@ -27,7 +27,6 @@ interface UsersState {
     dataSend: {
       name: string;
       email: string;
-      password?: string;
       phone: string;
       address: string;
       city: string;
@@ -39,6 +38,12 @@ interface UsersState {
   ) => Promise<Users>;
 
   deleteUser: (id: number) => Promise<void>;
+
+  changePassword: (
+    id: number,
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<string>;
 }
 
 const usersStore: StateCreator<UsersState> = (set, get) => ({
@@ -99,6 +104,23 @@ const usersStore: StateCreator<UsersState> = (set, get) => ({
       console.error(error);
       set({ loading: false });
       throw new Error("Error al eliminar el usuario");
+    }
+  },
+
+  changePassword: async (id, currentPassword, newPassword) => {
+    try {
+      set({ loading: true });
+      const result = await UsersService.changePassword(
+        id,
+        currentPassword,
+        newPassword
+      );
+      set({ loading: false });
+      return result;
+    } catch (error) {
+      console.error(error);
+      set({ loading: false });
+      throw new Error("Error al cambiar la contraseña");
     }
   },
 });

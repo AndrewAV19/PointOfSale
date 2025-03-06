@@ -67,7 +67,6 @@ export class UsersService {
     dataSend: {
       name?: string;
       email?: string;
-      password?: string;
       phone?: string;
       address?: string;
       city?: string;
@@ -91,10 +90,6 @@ export class UsersService {
       }[] = [
         { key: "name", value: dataSend.name },
         { key: "email", value: dataSend.email },
-        {
-          key: "password",
-          value: dataSend.password !== "" ? dataSend.password : undefined,
-        },
         { key: "phone", value: dataSend.phone },
         { key: "address", value: dataSend.address },
         { key: "city", value: dataSend.city },
@@ -154,6 +149,35 @@ export class UsersService {
     } catch (error) {
       console.error(error);
       throw new Error("Error al eliminar el usuario");
+    }
+  };
+
+  static readonly changePassword = async (
+    id: number,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<string> => {
+    try {
+      const response = await api.post(
+        `/users/${id}/change-password`,
+        {
+          currentPassword,
+          newPassword,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      console.error(error);
+      throw new Error("Error al cambiar la contraseña");
     }
   };
 }

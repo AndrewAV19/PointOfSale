@@ -122,24 +122,35 @@ const EditUserPage: React.FC = () => {
         ? getUpdatedFields(user, originalUser, newPassword, rolesSeleccionados)
         : {};
 
-      const finalUpdateFields = {
-        name: updatedFields.name ?? user.name,
-        email: updatedFields.email ?? user.email,
-        password: updatedFields.password,
-        phone: updatedFields.phone ?? user.phone,
-        address: updatedFields.address ?? user.address,
-        city: updatedFields.city ?? user.city,
-        state: updatedFields.state ?? user.state,
-        zipCode: updatedFields.zipCode ?? user.zipCode,
-        country: updatedFields.country ?? user.country,
-        roleIds: updatedFields.roleIds ?? user.roleIds,
-      };
+      // Si se proporciona una contraseña actual y una nueva, cambiar la contraseña
+      if (currentPassword && newPassword) {
+        await storeUsers
+          .getState()
+          .changePassword(selectedUser?.id ?? 0, currentPassword, newPassword);
+        showSnackbar("success", "Contraseña actualizada correctamente.");
+      }
 
-      await storeUsers
-        .getState()
-        .updateUser(selectedUser?.id ?? 0, finalUpdateFields);
+      // Actualizar los campos del usuario
+      if (Object.keys(updatedFields).length > 0) {
+        const finalUpdateFields = {
+          name: updatedFields.name ?? user.name,
+          email: updatedFields.email ?? user.email,
+          phone: updatedFields.phone ?? user.phone,
+          address: updatedFields.address ?? user.address,
+          city: updatedFields.city ?? user.city,
+          state: updatedFields.state ?? user.state,
+          zipCode: updatedFields.zipCode ?? user.zipCode,
+          country: updatedFields.country ?? user.country,
+          roleIds: updatedFields.roleIds ?? user.roleIds,
+        };
 
-      showSnackbar("success", "Usuario actualizado correctamente.");
+        await storeUsers
+          .getState()
+          .updateUser(selectedUser?.id ?? 0, finalUpdateFields);
+
+        showSnackbar("success", "Usuario actualizado correctamente.");
+      }
+
       clearPasswordFields();
     } catch (error) {
       showSnackbar("error", "Error al actualizar el usuario.");
