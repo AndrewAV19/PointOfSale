@@ -8,14 +8,22 @@ import {
   Paper,
   Snackbar,
   Alert,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { Save as SaveIcon } from "@mui/icons-material";
 import { storeDataPointOfSale } from "../../../stores/data-point-of-sale.store";
 import { useSnackbar } from "../../../hooks/useSnackbar";
+import { DataPointOfSale } from "../../interfaces/data-point-of-sale.interface";
 
 const Settings: React.FC = () => {
-  const [businessName, setBusinessName] = useState<string>("");
   const { getData, data, updateData } = storeDataPointOfSale();
+  const [dataPointOfSale, setDataPointOfSale] = useState<DataPointOfSale>({
+    name: data?.name ?? "",
+    address: data?.address ?? "",
+    phone: data?.phone ?? "",
+    printTicket: data?.printTicket ?? false,
+  });
 
   const {
     openSnackbar,
@@ -29,26 +37,60 @@ const Settings: React.FC = () => {
     getData();
   }, [getData]);
 
-  useEffect(() => {
-    if (data?.name) {
-      setBusinessName(data.name);
-    }
-  }, [data]);
-
   const handleSave = async () => {
-    if (!businessName.trim()) {
+    if (!dataPointOfSale.name.trim()) {
       showSnackbar("error", "El nombre del negocio no puede estar vacío.");
       return;
     }
 
     try {
-      await updateData(1, { name: businessName });
-      showSnackbar("success", "Nombre del negocio actualizado correctamente.");
+      // Crear un objeto con solo los campos que han cambiado
+      const updatedFields: Partial<DataPointOfSale> = {};
+
+      if (data && dataPointOfSale.name !== data.name) {
+        updatedFields.name = dataPointOfSale.name;
+      }
+      if (data && dataPointOfSale.address !== data.address) {
+        updatedFields.address = dataPointOfSale.address;
+      }
+      if (data && dataPointOfSale.phone !== data.phone) {
+        updatedFields.phone = dataPointOfSale.phone;
+      }
+      if (data && dataPointOfSale.printTicket !== data.printTicket) {
+        updatedFields.printTicket = dataPointOfSale.printTicket;
+      }
+
+      // Solo enviar la solicitud si hay campos actualizados
+      if (Object.keys(updatedFields).length > 0) {
+        await updateData(1, updatedFields);
+        showSnackbar(
+          "success",
+          "Datos del negocio actualizados correctamente."
+        );
+      }
     } catch (error) {
-      console.error("Error al actualizar el nombre del negocio:", error);
-      showSnackbar("error", "Error al actualizar el nombre del negocio.");
+      console.error("Error al actualizar los datos del negocio:", error);
+      showSnackbar("error", "Error al actualizar los datos del negocio.");
     }
   };
+
+  const handleChange =
+    (field: keyof DataPointOfSale) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setDataPointOfSale({
+        ...dataPointOfSale,
+        [field]: e.target.value,
+      });
+    };
+
+  const handleSwitchChange =
+    (field: keyof DataPointOfSale) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDataPointOfSale((prevState) => ({
+        ...prevState,
+        [field]: e.target.checked,
+      }));
+    };
 
   return (
     <Container className="mt-10">
@@ -71,11 +113,41 @@ const Settings: React.FC = () => {
             fullWidth
             label="Nombre del Negocio"
             variant="outlined"
-            value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
+            value={dataPointOfSale.name}
+            onChange={handleChange("name")}
             className="bg-white"
-            error={!businessName.trim()}
-            helperText={!businessName.trim() ? "Este campo es obligatorio" : ""}
+            helperText={
+              !dataPointOfSale.name ? "Este campo es obligatorio" : ""
+            }
+          />
+
+          <TextField
+            fullWidth
+            label="Dirección del Negocio"
+            variant="outlined"
+            value={dataPointOfSale.address}
+            onChange={handleChange("address")}
+            className="bg-white"
+          />
+
+          <TextField
+            fullWidth
+            label="Teléfono del Negocio"
+            variant="outlined"
+            value={dataPointOfSale.phone}
+            onChange={handleChange("phone")}
+            className="bg-white"
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={dataPointOfSale.printTicket}
+                onChange={handleSwitchChange("printTicket")}
+                color="primary"
+              />
+            }
+            label="Imprimir Tickets"
           />
 
           <Box className="flex justify-end">

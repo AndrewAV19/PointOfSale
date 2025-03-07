@@ -3,15 +3,16 @@ import { persist } from "zustand/middleware";
 import { DataPointOfSale } from "../pointofsale/interfaces/data-point-of-sale.interface";
 import { DataPointOfSaleService } from "../services/data.service";
 
-
 interface DataPointOfSaleState {
   data: DataPointOfSale | null;
   loading: boolean;
   error: string | null;
 
   getData: () => Promise<void>;
-
-  updateData: (id: number, dataSend: { name?: string }) => Promise<void>;
+  updateData: (
+    id: number,
+    dataSend: { name?: string; address?: string; phone?: string; printTicket?: boolean }
+  ) => Promise<void>;
 }
 
 const dataPointOfSaleStore: StateCreator<DataPointOfSaleState> = (set) => ({

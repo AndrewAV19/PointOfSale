@@ -1,9 +1,7 @@
 import api from "../lib/axios";
 import { DataPointOfSale } from "../pointofsale/interfaces/data-point-of-sale.interface";
 
-
 export class DataPointOfSaleService {
-
   static readonly getData = async (): Promise<DataPointOfSale> => {
     try {
       const response = await api.get<DataPointOfSale>("/data/1", {
@@ -12,10 +10,9 @@ export class DataPointOfSaleService {
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
-      console.log(response);
       return response.data;
     } catch (error) {
-      throw new Error("UnAuthorized");
+      throw new Error("No autorizado");
     }
   };
 
@@ -27,12 +24,9 @@ export class DataPointOfSaleService {
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
       });
-      console.log(response);
-
       return response.data;
     } catch (error) {
-      console.error(error);
-      throw new Error("Error al obtener la info");
+      throw new Error("Error al obtener la información");
     }
   };
 
@@ -40,6 +34,9 @@ export class DataPointOfSaleService {
     id: number,
     dataSend: {
       name?: string;
+      address?: string;
+      phone?: string;
+      printTicket?: boolean;
     }
   ): Promise<DataPointOfSale> => {
     try {
@@ -48,46 +45,37 @@ export class DataPointOfSaleService {
       // Crear un objeto con solo los campos que han cambiado
       const updatedFields: Partial<DataPointOfSale> = {};
 
-      // Definir los campos a verificar
-      const fieldsToCheck: {
-        key: keyof DataPointOfSale;
-        value: any;
-        compare?: (a: any, b: any) => boolean;
-      }[] = [{ key: "name", value: dataSend.name }];
-
       // Verificar y actualizar los campos
-      fieldsToCheck.forEach(({ key, value, compare }) => {
-        if (
-          value !== undefined &&
-          (compare
-            ? compare(value, currentData[key])
-            : value !== currentData[key])
-        ) {
-          updatedFields[key] = value;
-        }
-      });
+      if (dataSend.name !== undefined && dataSend.name !== currentData.name) {
+        updatedFields.name = dataSend.name;
+      }
+      if (dataSend.address !== undefined && dataSend.address !== currentData.address) {
+        updatedFields.address = dataSend.address;
+      }
+      if (dataSend.phone !== undefined && dataSend.phone !== currentData.phone) {
+        updatedFields.phone = dataSend.phone;
+      }
+      if (
+        dataSend.printTicket !== undefined &&
+        dataSend.printTicket !== currentData.printTicket
+      ) {
+        updatedFields.printTicket = dataSend.printTicket;
+      }
 
       // Solo enviar la solicitud si hay campos actualizados
       if (Object.keys(updatedFields).length > 0) {
-        const response = await api.put<DataPointOfSale>(
-          `/data/${id}`,
-          updatedFields,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: "Bearer " + localStorage.getItem("token"),
-            },
-          }
-        );
-
-        console.log(response.data);
+        const response = await api.put<DataPointOfSale>(`/data/${id}`, updatedFields, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        });
         return response.data;
       } else {
         console.log("No hay campos para actualizar");
         return currentData;
       }
     } catch (error) {
-      console.log(error);
       throw new Error("Error al actualizar los datos del negocio");
     }
   };
