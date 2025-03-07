@@ -31,6 +31,13 @@ import PendingPaymentsClientsHistory from "../pages/Clients/PendingPaymentsClien
 import PendingPaymentsClient from "../pages/Clients/PendingPaymentsClient";
 import EditProductPage from "../pages/Inventory/EditProductPage";
 import Settings from "../pages/Settings/Settings";
+import SalesReport from "../pages/Reports/SalesReport";
+import CategoryReport from "../pages/Reports/CategoryReport";
+import BalanceReport from "../pages/Reports/BalanceReport";
+import InventoryReport from "../pages/Reports/InventoryReport";
+import FrequentCustomersReport from "../pages/Reports/FrequentCustomersReport";
+import FrequentSuppliersReport from "../pages/Reports/FrequentSuppliersReport";
+import CanceledSalesReport from "../pages/Reports/CanceledSalesReport";
 
 const PointOfSaleRoutes = () => {
   return (
@@ -73,10 +80,20 @@ const PointOfSaleRoutes = () => {
         <Route path="/egresos/dia" element={<DailyExpenses />}></Route>
         <Route path="/egresos/mes" element={<MonthlyExpenses />}></Route>
         <Route path="/egresos/anio" element={<YearlyExpenses />}></Route>
+
+        <Route path="/informes/ventas-producto" element={<SalesReport />}></Route>
+        <Route path="/informes/ventas-categoria" element={<CategoryReport />}></Route>
+        <Route path="/informes/balance" element={<BalanceReport />}></Route>
+        <Route path="/informes/inventario" element={<InventoryReport />}></Route>
+        <Route path="/informes/clientes" element={<FrequentCustomersReport />}></Route>
+        <Route path="/informes/proveedores" element={<FrequentSuppliersReport />}></Route>
+        <Route path="/informes/cancelaciones" element={<CanceledSalesReport />}></Route>
         
         <Route path="/acerca-de" element={<AboutPage />}></Route>
 
         <Route path="/configuraciones" element={<Settings />}></Route>
+
+        
       </Route>
 
       <Route path="/*" element={<Navigate to="/" />}></Route>
