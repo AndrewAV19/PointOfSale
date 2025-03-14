@@ -18,6 +18,7 @@ export interface SaleProduct {
     id?: number;
     product: Product;
     quantity: number;
+    discount?: number;
 }
 
 export interface SaleRequest {
@@ -34,4 +35,5 @@ export interface SaleProductRequest {
     id?: number; 
     product: { id: number };
     quantity: number;
+    discount?: number;
 }

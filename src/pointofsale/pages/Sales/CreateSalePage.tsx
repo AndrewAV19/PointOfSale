@@ -103,18 +103,20 @@ const CreateSalePage: React.FC = () => {
 
   const handleAddProduct = () => {
     if (product) {
-      // Verifica si el producto ya existe en la lista
       const existingProduct = productsList.find((p) => p.id === product.id);
 
+      const discountedPrice = product.discount
+        ? product.price * (1 - product.discount / 100)
+        : product.price;
+
       if (existingProduct) {
-        // Si el producto ya existe, actualiza su cantidad y total
         setProductsList((prevList) =>
           prevList.map((p) =>
             p.id === product.id
               ? {
                   ...p,
                   quantity: p.quantity + quantity,
-                  total: (p.quantity + quantity) * p.price,
+                  total: (p.quantity + quantity) * discountedPrice,
                 }
               : p
           )
@@ -125,8 +127,10 @@ const CreateSalePage: React.FC = () => {
           name: product.name,
           quantity,
           price: product.price,
-          total: product.price * quantity,
+          discountedPrice, // Precio con descuento
+          total: discountedPrice * quantity,
           image: product.image,
+          discount: product.discount, // Guardar el descuento
         };
         setProductsList((prevList) => [...prevList, newProduct]);
       }
@@ -419,6 +423,8 @@ const CreateSalePage: React.FC = () => {
                 <TableCell>Producto</TableCell>
                 <TableCell>Cantidad</TableCell>
                 <TableCell>Precio Unitario</TableCell>
+                <TableCell>Descuento</TableCell>
+                <TableCell>Precio con Descuento</TableCell>
                 <TableCell>Total</TableCell>
                 <TableCell></TableCell>
               </TableRow>
@@ -449,8 +455,17 @@ const CreateSalePage: React.FC = () => {
                         </IconButton>
                       </Box>
                     </TableCell>
-                    <TableCell>${product.price}</TableCell>{" "}
-                    <TableCell>${product.total}</TableCell>
+                    <TableCell>${product.price}</TableCell>
+                    <TableCell>
+                      {product.discount ? `${product.discount}%` : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      $
+                      {product.discountedPrice
+                        ? product.discountedPrice.toFixed(2)
+                        : product.price.toFixed(2)}
+                    </TableCell>
+                    <TableCell>${product.total.toFixed(2)}</TableCell>
                     <TableCell>
                       <IconButton
                         color="error"

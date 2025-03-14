@@ -85,11 +85,12 @@ const EditSalePage: React.FC = () => {
 
   // Función para calcular el total de la venta
   const calculateTotal = () => {
-    return productsList.reduce(
-      (acc, saleProduct) =>
-        acc + saleProduct.product.price * saleProduct.quantity,
-      0
-    );
+    return productsList.reduce((acc, saleProduct) => {
+      const discountedPrice = saleProduct.product.discount
+        ? saleProduct.product.price * (1 - saleProduct.product.discount / 100)
+        : saleProduct.product.price;
+      return acc + discountedPrice * saleProduct.quantity;
+    }, 0);
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,39 +130,42 @@ const EditSalePage: React.FC = () => {
 
   const handleAddProduct = () => {
     if (product) {
-      // Verifica si el producto ya existe en la lista
-      const existingProduct = productsList.find(
-        (p) => p.product.id === product.id
-      );
-
-      if (existingProduct) {
-        // Si el producto ya existe, actualiza su cantidad
-        setProductsList((prevList) =>
-          prevList.map((p) =>
-            p.product.id === product.id
-              ? {
-                  ...p,
-                  quantity: p.quantity + quantity,
-                }
-              : p
-          )
+        const existingProduct = productsList.find(
+            (p) => p.product.id === product.id
         );
-      } else {
-        const newSaleProduct: SaleProduct = {
-          product,
-          quantity,
-        };
-        setProductsList((prevList) => [...prevList, newSaleProduct]);
-      }
 
-      setProduct(null);
-      setQuantity(1);
-      setChange(amountGiven - calculateTotal());
-      setHasChanges(true);
+        if (existingProduct) {
+            // Si el producto ya existe, actualiza su cantidad
+            setProductsList((prevList) =>
+                prevList.map((p) =>
+                    p.product.id === product.id
+                        ? {
+                              ...p,
+                              quantity: p.quantity + quantity,
+                          }
+                        : p
+                )
+            );
+        } else {
+            // Si el producto no existe, agrégalo a la lista
+            const newSaleProduct: SaleProduct = {
+                product: {
+                    ...product,
+                },
+                quantity,
+                discount: product.discount, // Incluye el descuento
+            };
+            setProductsList((prevList) => [...prevList, newSaleProduct]);
+        }
+
+        setProduct(null);
+        setQuantity(1);
+        setChange(amountGiven - calculateTotal());
+        setHasChanges(true);
     } else {
-      console.error("No se ha seleccionado ningún producto.");
+        console.error("No se ha seleccionado ningún producto.");
     }
-  };
+};
 
   const handleDeleteProduct = (productId: number) => {
     setProductsList((prevList) =>
@@ -485,81 +489,93 @@ const EditSalePage: React.FC = () => {
           Productos Seleccionados
         </Typography>
         <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
+    <Table>
+        <TableHead>
+            <TableRow>
                 <TableCell>Imagen</TableCell>
                 <TableCell>Producto</TableCell>
                 <TableCell>Cantidad</TableCell>
                 <TableCell>Precio Unitario</TableCell>
+                <TableCell>Descuento</TableCell>
+                <TableCell>Precio con Descuento</TableCell>
                 <TableCell>Total</TableCell>
                 <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {productsList
+            </TableRow>
+        </TableHead>
+        <TableBody>
+            {productsList
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((saleProduct) => (
-                  <TableRow key={saleProduct.product.id}>
-                    <TableCell>
-                      <Avatar
-                        alt={saleProduct.product.name}
-                        src={saleProduct.product.image}
-                      />
-                    </TableCell>
-                    <TableCell>{saleProduct.product.name}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        <IconButton
-                          onClick={() =>
-                            handleDecreaseQuantity(saleProduct.product.id!)
-                          }
-                          disabled={isDisabled}
-                        >
-                          -
-                        </IconButton>
-                        <Typography variant="body2">
-                          {saleProduct.quantity}
-                        </Typography>
-                        <IconButton
-                          onClick={() =>
-                            handleIncreaseQuantity(saleProduct.product.id!)
-                          }
-                          disabled={isDisabled}
-                        >
-                          +
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                    <TableCell>${saleProduct.product.price}</TableCell>
-                    <TableCell>
-                      ${saleProduct.product.price * saleProduct.quantity}
-                    </TableCell>
-                    <TableCell>
-                      <IconButton
-                        color="error"
-                        onClick={() =>
-                          handleDeleteProduct(saleProduct.product.id!)
-                        }
-                        disabled={isDisabled}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={productsList.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </TableContainer>
+                .map((saleProduct) => {
+                    const discountedPrice = saleProduct.discount
+                        ? saleProduct.product.price * (1 - saleProduct.discount / 100)
+                        : saleProduct.product.price;
+
+                    return (
+                        <TableRow key={saleProduct.product.id}>
+                            <TableCell>
+                                <Avatar
+                                    alt={saleProduct.product.name}
+                                    src={saleProduct.product.image}
+                                />
+                            </TableCell>
+                            <TableCell>{saleProduct.product.name}</TableCell>
+                            <TableCell>
+                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                    <IconButton
+                                        onClick={() =>
+                                            handleDecreaseQuantity(saleProduct.product.id!)
+                                        }
+                                        disabled={isDisabled}
+                                    >
+                                        -
+                                    </IconButton>
+                                    <Typography variant="body2">
+                                        {saleProduct.quantity}
+                                    </Typography>
+                                    <IconButton
+                                        onClick={() =>
+                                            handleIncreaseQuantity(saleProduct.product.id!)
+                                        }
+                                        disabled={isDisabled}
+                                    >
+                                        +
+                                    </IconButton>
+                                </Box>
+                            </TableCell>
+                            <TableCell>${saleProduct.product.price.toFixed(2)}</TableCell>
+                            <TableCell>
+                                {saleProduct.discount ? `${saleProduct.discount}%` : "N/A"}
+                            </TableCell>
+                            <TableCell>${discountedPrice.toFixed(2)}</TableCell>
+                            <TableCell>
+                                ${(discountedPrice * saleProduct.quantity).toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                                <IconButton
+                                    color="error"
+                                    onClick={() =>
+                                        handleDeleteProduct(saleProduct.product.id!)
+                                    }
+                                    disabled={isDisabled}
+                                >
+                                    <DeleteIcon />
+                                </IconButton>
+                            </TableCell>
+                        </TableRow>
+                    );
+                })}
+        </TableBody>
+    </Table>
+    <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={productsList.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+    />
+</TableContainer>
 
         <Divider sx={{ marginY: 3 }} />
 
@@ -575,7 +591,7 @@ const EditSalePage: React.FC = () => {
           <Box>
             <TextField
               label="Total"
-              value={calculateTotal()}
+              value={calculateTotal().toFixed(2)}
               fullWidth
               disabled
               slotProps={{
