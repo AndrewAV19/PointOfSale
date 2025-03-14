@@ -8,6 +8,7 @@ import {
   TableBody,
   Input,
   Button,
+  Tooltip, // Importar Tooltip
 } from "@mui/material";
 import { Search, Visibility, Download } from "@mui/icons-material";
 import jsPDF from "jspdf";
@@ -23,9 +24,7 @@ export default function HistoryProducts() {
   const navigate = useNavigate();
   const [products, setProducts] = useState(listProducts);
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(
-    null
-  );
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const pdfRef = useRef(null);
 
   useEffect(() => {
@@ -128,51 +127,65 @@ export default function HistoryProducts() {
               </TableRow>
             ) : (
               filteredProducts.map((producto) => (
-                <TableRow key={producto.id} className="hover:bg-gray-100">
-                  <TableCell>
-                    {producto.image ? (
-                      <img
-                        src={producto.image}
-                        alt={producto.name}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          objectFit: "cover",
+                <Tooltip
+                  key={producto.id}
+                  title={producto.stock === 0 ? "No hay stock en almacén" : ""}
+                  arrow
+                >
+                  <TableRow
+                    sx={{
+                      backgroundColor: producto.stock === 0 ? "#ffcdd2" : "inherit",
+                      "&:hover": {
+                        backgroundColor: producto.stock === 0 ? "#ffcdd2" : "#f5f5f5",
+                      },
+                    }}
+                  >
+                    <TableCell>
+                      {producto.image ? (
+                        <img
+                          src={producto.image}
+                          alt={producto.name}
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        ""
+                      )}
+                    </TableCell>
+                    <TableCell>{producto.name}</TableCell>
+                    <TableCell>{producto.barCode}</TableCell>
+                    <TableCell>{producto.category?.name}</TableCell>
+                    <TableCell>${producto.price}</TableCell>
+                    <TableCell>
+                      <span>{producto.stock}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outlined"
+                        startIcon={<Visibility />}
+                        size="small"
+                        onClick={async () => {
+                          await getProductById(producto.id ?? 0);
+                          navigate(`/inventario/productos/editar`);
                         }}
-                      />
-                    ) : (
-                      ""
-                    )}
-                  </TableCell>
-                  <TableCell>{producto.name}</TableCell>
-                  <TableCell>{producto.barCode}</TableCell>
-                  <TableCell>{producto.category?.name}</TableCell>
-                  <TableCell>${producto.price}</TableCell>
-                  <TableCell>{producto.stock}</TableCell>
-
-                  <TableCell>
-                    <Button
-                      variant="outlined"
-                      startIcon={<Visibility />}
-                      size="small"
-                      onClick={async () => {
-                        await getProductById(producto.id ?? 0);
-                        navigate(`/inventario/productos/editar`);
-                      }}
-                    >
-                      Ver
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      size="small"
-                      onClick={() => handleDeleteClick(producto.id ?? 0)}
-                      sx={{ ml: 1 }}
-                    >
-                      Eliminar
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                      >
+                        Ver
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDeleteClick(producto.id ?? 0)}
+                        sx={{ ml: 1 }}
+                      >
+                        Eliminar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                </Tooltip>
               ))
             )}
           </TableBody>
