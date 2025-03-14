@@ -19,6 +19,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   Save as SaveIcon,
@@ -27,6 +31,7 @@ import {
   Clear as ClearIcon,
   Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
+  QrCode as QrCodeIcon,
 } from "@mui/icons-material";
 import { ModalSearchCategories } from "../../modales/ModalSearchCategories";
 import { Supplier } from "../../interfaces/supplier.interface";
@@ -65,6 +70,8 @@ const EditProductPage: React.FC = () => {
   >("success");
   const [messageSnackbar, setMessageSnackbar] = useState("");
   const navigate = useNavigate();
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [openPdfModal, setOpenPdfModal] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
@@ -237,6 +244,42 @@ const EditProductPage: React.FC = () => {
 
   const handleGoBack = () => {
     navigate(-1);
+  };
+
+  const handleGenerateQrCode = async () => {
+    try {
+      if (!selectedProduct?.id) {
+        setSnackbarSeverity("error");
+        handleOpenSnackbar("No se ha seleccionado un producto válido.");
+        return;
+      }
+
+      // Generar el código QR
+      await storeProducts.getState().generateQrCode(selectedProduct.id);
+
+      // Generar la etiqueta del producto
+      const blob = await storeProducts
+        .getState()
+        .generateProductLabel(selectedProduct.id);
+
+      const pdfUrl = URL.createObjectURL(blob);
+      setPdfUrl(pdfUrl);
+      setOpenPdfModal(true);
+
+      setSnackbarSeverity("success");
+    } catch (error) {
+      setSnackbarSeverity("error");
+      handleOpenSnackbar("Error al generar el código QR y la etiqueta.");
+      console.error(error);
+    }
+  };
+
+  const handleClosePdfModal = () => {
+    setOpenPdfModal(false);
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+    }
   };
 
   return (
@@ -534,6 +577,26 @@ const EditProductPage: React.FC = () => {
           >
             Limpiar Campos
           </Button>
+
+          {/* Botón para código QR */}
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<QrCodeIcon />}
+            onClick={handleGenerateQrCode}
+            sx={{
+              borderRadius: 2,
+              padding: "10px 20px",
+              fontWeight: "bold",
+              backgroundColor: "#4caf50",
+              "&:hover": {
+                backgroundColor: "#388e3c",
+              },
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            Ver Código QR
+          </Button>
         </Box>
       </Paper>
 
@@ -569,6 +632,28 @@ const EditProductPage: React.FC = () => {
         title="Confirmar Eliminación"
         message="¿Estás seguro de que deseas eliminar este producto?"
       />
+      <Dialog
+        open={openPdfModal}
+        onClose={handleClosePdfModal}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Etiqueta del Producto</DialogTitle>
+        <DialogContent>
+          {pdfUrl && (
+            <iframe
+              src={pdfUrl}
+              width="100%"
+              height="500px"
+              style={{ border: "none" }}
+              title="Etiqueta del Producto"
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePdfModal}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

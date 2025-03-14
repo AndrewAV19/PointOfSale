@@ -35,6 +35,7 @@ export class ProductService {
 
   static readonly createProduct = async (dataSend: {
     barCode?: string;
+    qrCode?: string;
     name: string;
     description?: string;
     price: number;
@@ -149,4 +150,37 @@ export class ProductService {
       throw new Error("Error al eliminar el producto");
     }
   };
+
+  static readonly generateQrCode = async (id: number): Promise<Product> => {
+    try {
+      const response = await api.put<Product>(`/products/${id}/generate-qr`, {}, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error al generar el código QR");
+    }
+  };
+
+  static readonly generateProductLabel = async (id: number): Promise<Blob> => {
+    try {
+      const response = await api.get(`/products/${id}/label`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        responseType: "blob",
+      });
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Error al generar la etiqueta del producto");
+    }
+  };
+  
 }

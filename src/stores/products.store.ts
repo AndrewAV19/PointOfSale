@@ -8,9 +8,13 @@ interface ProductState {
   listProducts: Product[]; 
   loading: boolean; 
   getProducts: () => Promise<void>; 
+  generateProductLabel: (id: number) => Promise<Blob>
+  generateQrCode: (id: number) => Promise<Product>;
+
 
   createProduct: (dataSend: {
     barCode?: string;
+    qrCode?: string;
     name: string;
     description?: string;
     price: number;
@@ -55,6 +59,37 @@ const productStore: StateCreator<ProductState> = (set, get) => ({
     } catch (error) {
       set({ listProducts: [], loading: false }); 
       throw new Error("Error al obtener los productos");
+    }
+  },
+
+  generateProductLabel: async (id) => {
+    try {
+      set({ loading: true });
+      const labelBlob = await ProductService.generateProductLabel(id);
+      set({ loading: false });
+      return labelBlob;
+    } catch (error) {
+      console.error(error);
+      set({ loading: false });
+      throw new Error("Error al generar la etiqueta del producto");
+    }
+  },
+
+  generateQrCode: async (id) => {
+    try {
+      set({ loading: true });
+      const updatedProduct = await ProductService.generateQrCode(id);
+
+      const updatedProducts = get().listProducts.map((product) =>
+        product.id === id ? updatedProduct : product
+      );
+
+      set({ listProducts: updatedProducts, loading: false });
+      return updatedProduct;
+    } catch (error) {
+      console.error(error);
+      set({ loading: false });
+      throw new Error("Error al generar el código QR");
     }
   },
 

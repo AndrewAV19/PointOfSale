@@ -5,6 +5,7 @@ export interface Product {
     id?: number;
     name: string;
     barCode?: string;
+    qrCode?: string;
     description?: string;
     price: number;
     stock?: number; 
@@ -19,6 +20,7 @@ export interface Product {
   export interface ProductRequest {
     id?: number;
     barCode?: string;
+    qrCode?: string;
     name: string;
     description?: string;
     price: number;
